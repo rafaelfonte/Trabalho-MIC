@@ -13,18 +13,29 @@ STACK_BASE  EQU 0X20
 STACK_LIMIT EQU 0X6F
 
 
-INT_VAR     UDATA_SHR
-w_temp      res 1   ; armazena backup do acumulador
-w_bk        res 1
-status_temp res 1
-pos_value   res 1   ; 0 desligado, outros define o nível de luminosidade
-motor_pos   res 1
-
+            UDATA   0X50
 IrDA_bits   res 1
 IrDA_discard res 1
 IrDA_DATA   res 3
 IrDA_comand res 1
 IrDA_device res 1
+
+pos_value   res 1   ; 0 desligado, outros define o nível de luminosidade
+motor_pos   res 1
+counter     res 1
+
+B1          res 1
+B2          res 1
+LOOP_BCD_COUNTER    res 1
+VALUE_BIN   res 1
+
+
+
+INT_VAR     UDATA_SHR
+w_temp      res 1   ; armazena backup do acumulador
+w_bk        res 1
+status_temp res 1
+
 
 record_data res 1
 record_addr res 1
@@ -111,7 +122,6 @@ start   ; PRÉ-SET DO AMBIENTE DE EXECUÇÃO
         MOVWF   WDTCON          ; AJUSTA PRESCALER DO WATCH-DOG PARA 1:65536 ~ 2 segundos
         CLRF    PIR1            ; ZERA FLAGS DE INTERRUPÇÕES DOS PERIFÉRICOS
 
-
         MOVLW   b'01010000'
         MOVWF   INTCON          ; HABILITA INT/RA2, PERIFÉRICOS
 
@@ -139,8 +149,10 @@ start   ; PRÉ-SET DO AMBIENTE DE EXECUÇÃO
         MOVLW   0x03
 
 LOOP_MAIN   ; loop de execução continua
-
+        call    LDR_REFRESH
         GOTO    LOOP_MAIN
+
+SELF    GOTO    SELF
 
 ;============================================================================
 ;
@@ -346,7 +358,7 @@ IrDA_COMMAND_15_BITS
 
 
         MOVF    IrDA_DATA, W
-        XORWF   DEVICE, W
+        XORLW   DEVICE
         BTFSS   STATUS, Z           ; testa dispositivo
         GOTO    IrDA_SAMPLER_ABORT
 
@@ -355,7 +367,7 @@ IrDA_COMMAND_15_BITS
         MOVLW   0x03
         ANDWF   IrDA_discard, F
         BTFSS   STATUS, Z
-        GOTO    IrDA_SAMPLER_ABORT  ; descarta envio triplo do controle
+        ;GOTO    IrDA_SAMPLER_ABORT  ; descarta envio triplo do controle
 
 
         ;MOVF    IrDA_DATA+1, W
@@ -371,11 +383,60 @@ IrDA_COMMAND_15_BITS
         ; LOCALIZAR AÇÃO NA TABELA
         MOVF    IrDA_DATA+1, W
         CALL    REMOTE_CONTROL_COMMANDS
+        MOVWF   w_temp
         IORLW   0X00
         BTFSC   STATUS, Z ; TESTA SE EXISTE AÇÃO PARA ESTA TECLA
         GOTO    IrDA_SAMPLER_ABORT
 
+        MOVF    w_temp, W
+
+        CLRF    PCLATH
         MOVWF   PCL
+command_1
+command_2
+command_3
+command_4
+command_5
+command_6
+command_7
+command_8
+command_9
+command_0
+command_enter
+command_close_all
+command_open_all
+
+; para o movimento ficar suave manter o tempo total desta execução em 4ms
+command_motor_direct
+        clrf    counter
+st1     call    MOTOR_REVERSE
+        call    DELAYms
+        call    DELAYms
+        incf    counter, F
+        movlw   0x02
+        xorwf   counter, w
+        btfss   STATUS, Z
+        goto    st1
+        call    MOTOR_OFF
+        goto    RETORNO_DE_COMANDO
+
+; para o movimento ficar suave manter o tempo total desta execução em 4ms
+command_motor_reverse
+        clrf    counter
+st2     call    MOTOR_DIRECT
+        call    DELAYms
+        call    DELAYms
+        incf    counter, F
+        movlw   0x02
+        xorwf   counter, w
+        btfss   STATUS, Z
+        goto    st2
+        call    MOTOR_OFF
+        goto    RETORNO_DE_COMANDO
+
+
+
+
 RETORNO_DE_COMANDO
         BCF     STATUS, RP0
         MOVLW   b'00100000'
@@ -450,12 +511,22 @@ AD_DONE
         BTFSC   STATUS, Z           ; SE SÃO IGUAIS NÃO FAZ NADA
         GOTO    REFRESH_END
         BSF     ADCON0, GO_NOT_DONE ; INICIA NOVA CONVERSÃO
+
         BTFSC   STATUS, C
-        CALL    MOTOR_DIRECT            ; sentido horário
-        BTFSS   STATUS, C
+        goto    AD_FORWARD
         CALL    MOTOR_REVERSE            ; sentido anti-horário
+AD_END
+        CALL    DELAYms
+        CALL    DELAYms
+        CALL    DELAYms
+        CALL    DELAYms
         CALL    DELAYms
         GOTO    AD_DONE
+
+
+AD_FORWARD
+        CALL    MOTOR_DIRECT            ; sentido horário
+        GOTO    AD_END
 
 REFRESH_END
         BCF     ADCON0, ADON    ; DESLIGA CONVERSOR
@@ -474,7 +545,6 @@ MOTOR_DIRECT:
         GOTO    $+2
 MOTOR_REVERSE:
         DECF    motor_pos, F
-
         MOVF    motor_pos, W
         CALL    BIT_PATTERN
         MOVWF   w_temp
@@ -515,13 +585,85 @@ MOTOR_STATE_ARM2
     RETLW   0X00
     RETLW   0X04
 
+
+;-----------------------------------------------------------------------------
+;
+;   Conversor binário -> BCD
+;
+;-----------------------------------------------------------------------------
+
+BCD_CONVERT:
+    MOVWF VALUE_BIN
+	;inicializa laco (8 vezes)
+	MOVLW 0x80
+	MOVWF LOOP_BCD_COUNTER
+    CLRF B1                     ;b1; - primeiro byte com dois nibbles de bcd
+    CLRF B2                     ;b2; - segundo byte, com um unico nibble de bcd
+
+	GOTO KEEP_SHIFTING
+LOOP_SHIFT
+	BTFSC B1, 3                 ;Testa se primeiro nibble eh maior ou igual a oito
+	GOTO ADD_B1_0
+	BTFSS B1, 2                 ;Testa se eh maior ou igual a quatro
+	GOTO TEST_B1_1				;nibble ok, continuar
+	BTFSC B1, 1
+	GOTO ADD_B1_0				;tem que somar
+	BTFSS B1, 0
+	GOTO TEST_B1_1
+
+ADD_B1_0						;primeiro nibble eh maior que 5
+	MOVLW 0x03
+	ADDWF B1, f					;adiciona 3 ao nibble
+
+TEST_B1_1
+	BTFSC B1, 7                 ;Testa se primeiro nibble eh maior ou igual a oito
+	GOTO ADD_B1_1
+	BTFSS B1, 6                 ;Testa se eh maior ou igual a quatro
+	GOTO TEST_B2				;nibble ok, continuar
+	BTFSC B1, 5
+	GOTO ADD_B1_1				;tem que somar
+	BTFSS B1, 4
+	GOTO TEST_B2
+
+ADD_B1_1						;segundo nibble eh maior que 5
+	MOVLW 0x30
+	ADDWF B1, f					;adiciona 3 ao nibble
+
+TEST_B2
+	BTFSC B2, 3                 ;Testa se primeiro nibble eh maior ou igual a oito
+	GOTO ADD_B2
+	BTFSS B2, 2                 ;Testa se eh maior ou igual a quatro
+	GOTO KEEP_SHIFTING			;nibble ok, continuar
+	BTFSC B2, 1
+	GOTO ADD_B2					;tem que somar
+	BTFSS B2, 0
+	GOTO KEEP_SHIFTING
+
+ADD_B2
+	MOVLW 0x03
+	ADDWF B2, f                 ;adiciona 3 ao nibble
+
+KEEP_SHIFTING
+	RLF VALUE_BIN
+	RLF B1                      ;joga bit de carry no primeiro bit do registrador, shifta o registrador
+	RLF B2                      ;de novo, passa ultimo bit adiante
+
+	RRF LOOP_BCD_COUNTER,f
+	MOVF LOOP_BCD_COUNTER,f		;testa se valor do registrador eh zero
+	BTFSS STATUS,Z              ;testa se chegamos ao fim da execucao
+	GOTO LOOP_SHIFT
+final_da_execucao               ;realizar tratamentos finais
+	RETURN
+
+
 ;=============================================================================
 ;
 ;   padrão de ativação das bobinas do motor de passo para meio passo
 ;
 ;=============================================================================
-
+    org     0x0200  ; AJUSTA INICIO DAS TABELAS, 255 POSIÇÕES
 BIT_PATTERN:
+    BSF     PCLATH, 1   ; ACERTA DESLOCAMENTO SOMADO AO PCL
     ANDLW   0X07        ; remove possíveis saltos para fora da tabela
     ADDWF   PCL, F      ; move o PC para a posição desejada
     RETLW b'00000100'   ; A
@@ -592,6 +734,7 @@ BIT_PATTERN:
 ;============================================================================
 
 REMOTE_CONTROL_COMMANDS:
+    BSF     PCLATH, 1   ; ACERTA O DESLOCAMENTO SOMADO AO PCL
     ANDLW   0X3F        ; remove possíveis saltos para fora da tabela
     ADDWF   PCL, F      ; move o PC para a posição desejada
     RETLW   0X00        ;   1				0x00 	VCR/TV
@@ -605,15 +748,15 @@ REMOTE_CONTROL_COMMANDS:
     RETLW   0X00        ;   9				0x08 	VCR/TV
     RETLW   0X00        ;   0				0x09 	VCR/TV
     RETLW   0X00        ;                   0x0A
-    RETLW   0X00        ;   ENTER			0x0B 	VCR/TV
+    RETLW   RETORNO_DE_COMANDO        ;   ENTER			0x0B 	VCR/TV
     RETLW   0X00        ;                   0x0C
     RETLW   0X00        ;                   0x0D
     RETLW   0X00        ;                   0x0E
     RETLW   0X00        ;                   0x0F
     RETLW   0X00        ;   CH+				0x10 	VCR/TV
     RETLW   0X00        ;   CH-				0x11	VCR/TV
-    RETLW   0X00        ;   VOL+			0x12	TV
-    RETLW   0X00        ;   VOL-			0x13 	TV
+    RETLW   command_motor_direct        ;   VOL+			0x12	TV
+    RETLW   command_motor_reverse        ;   VOL-			0x13 	TV
     RETLW   0X00        ;                   0x14
     RETLW   0X00        ;   POWER			0x15 	VCR/TV
     RETLW   0X00        ;                   0x16
@@ -660,5 +803,39 @@ REMOTE_CONTROL_COMMANDS:
     RETLW   0X00        ;                   0x3F
 
 
+
+;TABELA PARA O DISPLAY DE SETE SEGMENTOS
+SEVEN_SEG_CODE_LOOKUP:
+    BSF PCLATH, 1
+    ADDWF PCL, F
+    RETLW b'00000011'           ;0
+    RETLW b'10011111'           ;1
+    RETLW b'00100101'           ;2
+    RETLW b'00001101'           ;3
+    RETLW b'10011001'           ;4
+    RETLW b'01001001'           ;5
+    RETLW b'01000001'           ;6
+    RETLW b'00011111'           ;7
+    RETLW b'00000001'           ;8
+    RETLW b'00001001'           ;9
+
+; tabela com valores a serem somados no conversor bcd -> binário
+BCD_TO_BINARIO_DOZENS:
+    MOVWF   w_temp
+    SUBLW   0X09
+    BTFSC   STATUS, C
+    RETLW   0XFF
+    BSF     PCLATH, 1
+    ADDWF   PCL, F
+    RETLW   0x00        ; 0
+    RETLW   0x0A        ; 10
+    RETLW   0x14        ; 20
+    RETLW   0x1E        ; 30
+    RETLW   0x28        ; 40
+    RETLW   0x32        ; 50
+    RETLW   0x3C        ; 60
+    RETLW   0x46        ; 70
+    RETLW   0x50        ; 80
+    RETLW   0x5A        ; 90
 
     END                         ; directive 'end of program'

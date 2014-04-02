@@ -1,5 +1,5 @@
 MPLINK 5.01, LINKER
-Linker Map File - Created Mon Mar 24 06:19:07 2014
+Linker Map File - Created Wed Apr  2 01:07:50 2014
 
                                  Section Info
                   Section       Type    Address   Location Size(Bytes)
@@ -7,10 +7,12 @@ Linker Map File - Created Mon Mar 24 06:19:07 2014
              RESET_VECTOR       code   0x000000    program   0x000002
                    .cinit    romdata   0x000001    program   0x000004
                INT_VECTOR       code   0x000004    program   0x00001c
-                FUNCTIONS       code   0x000012    program   0x00021c
-                     MAIN       code   0x000120    program   0x000054
+                FUNCTIONS       code   0x000012    program   0x000216
+                     MAIN       code   0x00011d    program   0x000058
+                   .org_0       code   0x000200    program   0x0000d4
 .config_2007_BUILD/DEFAULT/PRODUCTION/MAIN.O       code   0x002007    program   0x000002
-                  INT_VAR      udata   0x000070       data   0x00000e
+                   .udata      udata   0x000050       data   0x00000e
+                  INT_VAR      udata   0x000070       data   0x000005
 
 
 
@@ -18,130 +20,203 @@ Linker Map File - Created Mon Mar 24 06:19:07 2014
                                Start         End      
                            ---------   ---------      
                             0x000000    0x000002      
-                            0x000004    0x000149      
+                            0x000004    0x000148      
+                            0x000200    0x000269      
                             0x002007    0x002007      
-            330 out of 2310 program addresses used, program memory utilization is 14%
+            435 out of 2310 program addresses used, program memory utilization is 18%
 
 
 
                               Symbols - Sorted by Name
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-                  AD_DONE   0x0000a6    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              BIT_PATTERN   0x0000d4    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                  DELAYms   0x000023    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-            END_INTERRUPT   0x00000b    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                INIT_IrDA   0x00002d    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                INTERRUPT   0x000004    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-     IrDA_COMMAND_12_BITS   0x000066    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-     IrDA_COMMAND_15_BITS   0x00006e    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_FALL   0x000032    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             IrDA_FALLING   0x00000e    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          IrDA_FALL_ABORT   0x000039    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-         IrDA_FALL_SAMPLE   0x00003c    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-       IrDA_FALL_SAMPLE_1   0x00003b    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             IrDA_SAMPLER   0x00003f    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-           IrDA_SAMPLER_1   0x000048    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-           IrDA_SAMPLER_3   0x00004f    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-           IrDA_SAMPLER_5   0x000052    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-       IrDA_SAMPLER_ABORT   0x000083    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_TIME   0x000010    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              LDR_REFRESH   0x0000a4    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                LOOP_MAIN   0x000149    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             MOTOR_DIRECT   0x0000b8    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                 MOTOR_DO   0x0000be    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                MOTOR_OFF   0x0000b6    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-            MOTOR_REVERSE   0x0000ba    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              MOTOR_STATE   0x0000c3    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-         MOTOR_STATE_ARM1   0x0000ca    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-         MOTOR_STATE_ARM2   0x0000d1    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                   POPCTX   0x00001d    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                     POPW   0x000015    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                  PUSHCTX   0x000019    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                    PUSHW   0x000012    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              READ_EEPROM   0x000098    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-            RECORD_EEPROM   0x000085    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              REFRESH_END   0x0000b3    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-  REMOTE_CONTROL_COMMANDS   0x0000de    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-       RETORNO_DE_COMANDO   0x000080    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_0019   0x00002b    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_0075   0x000087    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_0082   0x000094    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_008C   0x00009e    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_00A7   0x0000b9    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                    start   0x000120    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_DATA   0x000077       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_bits   0x000075       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              IrDA_comand   0x00007a       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              IrDA_device   0x00007b       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             IrDA_discard   0x000076       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                motor_pos   0x000074       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                pos_value   0x000073       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              record_addr   0x00007d       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              record_data   0x00007c       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              status_temp   0x000072       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                     w_bk   0x000071       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                   w_temp   0x000070       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
+                 ADD_B1_0   0x0000ff    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                 ADD_B1_1   0x000109    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   ADD_B2   0x000113    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  AD_DONE   0x0000be    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   AD_END   0x0000c8    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+               AD_FORWARD   0x0000ce    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              BCD_CONVERT   0x0000f1    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+    BCD_TO_BINARIO_DOZENS   0x00025a    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              BIT_PATTERN   0x000200    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  DELAYms   0x000023    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            END_INTERRUPT   0x00000b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                INIT_IrDA   0x00002d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                INTERRUPT   0x000004    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+     IrDA_COMMAND_12_BITS   0x000066    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+     IrDA_COMMAND_15_BITS   0x00006e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_FALL   0x000032    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             IrDA_FALLING   0x00000e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          IrDA_FALL_ABORT   0x000039    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         IrDA_FALL_SAMPLE   0x00003c    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+       IrDA_FALL_SAMPLE_1   0x00003b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             IrDA_SAMPLER   0x00003f    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+           IrDA_SAMPLER_1   0x000048    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+           IrDA_SAMPLER_3   0x00004f    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+           IrDA_SAMPLER_5   0x000052    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+       IrDA_SAMPLER_ABORT   0x00009b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_TIME   0x000010    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            KEEP_SHIFTING   0x000115    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              LDR_REFRESH   0x0000bc    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                LOOP_MAIN   0x000146    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+               LOOP_SHIFT   0x0000f7    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             MOTOR_DIRECT   0x0000d5    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                 MOTOR_DO   0x0000db    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                MOTOR_OFF   0x0000d3    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            MOTOR_REVERSE   0x0000d7    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              MOTOR_STATE   0x0000e0    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         MOTOR_STATE_ARM1   0x0000e7    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         MOTOR_STATE_ARM2   0x0000ee    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   POPCTX   0x00001d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                     POPW   0x000015    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  PUSHCTX   0x000019    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                    PUSHW   0x000012    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              READ_EEPROM   0x0000b0    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            RECORD_EEPROM   0x00009d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              REFRESH_END   0x0000d0    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+  REMOTE_CONTROL_COMMANDS   0x00020b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+       RETORNO_DE_COMANDO   0x000098    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                     SELF   0x000148    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+    SEVEN_SEG_CODE_LOOKUP   0x00024e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                TEST_B1_1   0x000101    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  TEST_B2   0x00010b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_0019   0x00002b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_008D   0x00009f    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_009A   0x0000ac    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_00A4   0x0000b6    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_00C4   0x0000d6    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_0   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_1   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_2   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_3   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_4   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_5   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_6   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_7   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_8   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_9   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+        command_close_all   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            command_enter   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+     command_motor_direct   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+    command_motor_reverse   0x00008d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         command_open_all   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+        final_da_execucao   0x00011c    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                      st1   0x000083    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                      st2   0x00008e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                    start   0x00011d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                       B1   0x00005a       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                       B2   0x00005b       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_DATA   0x000052       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_bits   0x000050       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              IrDA_comand   0x000055       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              IrDA_device   0x000056       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             IrDA_discard   0x000051       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         LOOP_BCD_COUNTER   0x00005c       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                VALUE_BIN   0x00005d       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  counter   0x000059       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                motor_pos   0x000058       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                pos_value   0x000057       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              record_addr   0x000074       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              record_data   0x000073       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              status_temp   0x000072       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                     w_bk   0x000071       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   w_temp   0x000070       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
 
 
 
                               Symbols - Sorted by Address
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-                INTERRUPT   0x000004    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-            END_INTERRUPT   0x00000b    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             IrDA_FALLING   0x00000e    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_TIME   0x000010    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                    PUSHW   0x000012    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                     POPW   0x000015    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                  PUSHCTX   0x000019    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                   POPCTX   0x00001d    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                  DELAYms   0x000023    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_0019   0x00002b    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                INIT_IrDA   0x00002d    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_FALL   0x000032    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          IrDA_FALL_ABORT   0x000039    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-       IrDA_FALL_SAMPLE_1   0x00003b    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-         IrDA_FALL_SAMPLE   0x00003c    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             IrDA_SAMPLER   0x00003f    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-           IrDA_SAMPLER_1   0x000048    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-           IrDA_SAMPLER_3   0x00004f    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-           IrDA_SAMPLER_5   0x000052    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-     IrDA_COMMAND_12_BITS   0x000066    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-     IrDA_COMMAND_15_BITS   0x00006e    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-       RETORNO_DE_COMANDO   0x000080    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-       IrDA_SAMPLER_ABORT   0x000083    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-            RECORD_EEPROM   0x000085    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_0075   0x000087    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_0082   0x000094    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              READ_EEPROM   0x000098    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_008C   0x00009e    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              LDR_REFRESH   0x0000a4    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                  AD_DONE   0x0000a6    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              REFRESH_END   0x0000b3    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                MOTOR_OFF   0x0000b6    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             MOTOR_DIRECT   0x0000b8    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-          _FUNCTIONS_00A7   0x0000b9    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-            MOTOR_REVERSE   0x0000ba    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                 MOTOR_DO   0x0000be    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              MOTOR_STATE   0x0000c3    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-         MOTOR_STATE_ARM1   0x0000ca    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-         MOTOR_STATE_ARM2   0x0000d1    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              BIT_PATTERN   0x0000d4    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-  REMOTE_CONTROL_COMMANDS   0x0000de    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                    start   0x000120    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                LOOP_MAIN   0x000149    program     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                   w_temp   0x000070       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                     w_bk   0x000071       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              status_temp   0x000072       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                pos_value   0x000073       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                motor_pos   0x000074       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_bits   0x000075       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-             IrDA_discard   0x000076       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-                IrDA_DATA   0x000077       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              IrDA_comand   0x00007a       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              IrDA_device   0x00007b       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              record_data   0x00007c       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
-              record_addr   0x00007d       data     static /home/gilson/MPLABXProjects/basculante.X/main.asm
+                INTERRUPT   0x000004    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            END_INTERRUPT   0x00000b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             IrDA_FALLING   0x00000e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_TIME   0x000010    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                    PUSHW   0x000012    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                     POPW   0x000015    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  PUSHCTX   0x000019    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   POPCTX   0x00001d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  DELAYms   0x000023    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_0019   0x00002b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                INIT_IrDA   0x00002d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_FALL   0x000032    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          IrDA_FALL_ABORT   0x000039    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+       IrDA_FALL_SAMPLE_1   0x00003b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         IrDA_FALL_SAMPLE   0x00003c    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             IrDA_SAMPLER   0x00003f    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+           IrDA_SAMPLER_1   0x000048    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+           IrDA_SAMPLER_3   0x00004f    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+           IrDA_SAMPLER_5   0x000052    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+     IrDA_COMMAND_12_BITS   0x000066    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+     IrDA_COMMAND_15_BITS   0x00006e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_4   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         command_open_all   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_3   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_9   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_8   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_7   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_6   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+        command_close_all   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_5   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            command_enter   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_2   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_1   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                command_0   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+     command_motor_direct   0x000082    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                      st1   0x000083    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+    command_motor_reverse   0x00008d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                      st2   0x00008e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+       RETORNO_DE_COMANDO   0x000098    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+       IrDA_SAMPLER_ABORT   0x00009b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            RECORD_EEPROM   0x00009d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_008D   0x00009f    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_009A   0x0000ac    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              READ_EEPROM   0x0000b0    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_00A4   0x0000b6    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              LDR_REFRESH   0x0000bc    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  AD_DONE   0x0000be    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   AD_END   0x0000c8    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+               AD_FORWARD   0x0000ce    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              REFRESH_END   0x0000d0    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                MOTOR_OFF   0x0000d3    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             MOTOR_DIRECT   0x0000d5    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+          _FUNCTIONS_00C4   0x0000d6    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            MOTOR_REVERSE   0x0000d7    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                 MOTOR_DO   0x0000db    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              MOTOR_STATE   0x0000e0    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         MOTOR_STATE_ARM1   0x0000e7    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         MOTOR_STATE_ARM2   0x0000ee    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              BCD_CONVERT   0x0000f1    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+               LOOP_SHIFT   0x0000f7    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                 ADD_B1_0   0x0000ff    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                TEST_B1_1   0x000101    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                 ADD_B1_1   0x000109    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  TEST_B2   0x00010b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   ADD_B2   0x000113    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+            KEEP_SHIFTING   0x000115    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+        final_da_execucao   0x00011c    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                    start   0x00011d    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                LOOP_MAIN   0x000146    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                     SELF   0x000148    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              BIT_PATTERN   0x000200    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+  REMOTE_CONTROL_COMMANDS   0x00020b    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+    SEVEN_SEG_CODE_LOOKUP   0x00024e    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+    BCD_TO_BINARIO_DOZENS   0x00025a    program     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_bits   0x000050       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+             IrDA_discard   0x000051       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                IrDA_DATA   0x000052       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              IrDA_comand   0x000055       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              IrDA_device   0x000056       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                pos_value   0x000057       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                motor_pos   0x000058       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                  counter   0x000059       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                       B1   0x00005a       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                       B2   0x00005b       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+         LOOP_BCD_COUNTER   0x00005c       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                VALUE_BIN   0x00005d       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                   w_temp   0x000070       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+                     w_bk   0x000071       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              status_temp   0x000072       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              record_data   0x000073       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
+              record_addr   0x000074       data     static /home/gilson/ufrgs/micros/Projeto/Trabalho-MIC/basculante.X/main.asm
 
 
