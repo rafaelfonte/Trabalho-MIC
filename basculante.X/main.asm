@@ -7,7 +7,10 @@
 ADDR_EE_POS EQU 0x00
 IrDAb       EQU RA2
 IrDAp       EQU PORTA
+ENA_DISP    EQU RA5
+DISPLAYp    EQU PORTA
 DEVICE      EQU 0X01    ; MODO TV DO CONTROLE SONY RMT-V297C
+MODEAUTO    EQU 0
 
 STACK_BASE  EQU 0X20
 STACK_LIMIT EQU 0X6F
@@ -17,8 +20,8 @@ STACK_LIMIT EQU 0X6F
 IrDA_bits   res 1
 IrDA_discard res 1
 IrDA_DATA   res 3
-IrDA_comand res 1
-IrDA_device res 1
+IrDA_command res 1
+SMCON       res 1
 
 pos_value   res 1   ; 0 desligado, outros define o nível de luminosidade
 motor_pos   res 1
@@ -55,7 +58,7 @@ RESET_VECTOR    CODE    0x0000     ; processor reset vector
 INT_VECTOR      CODE    0x0004     ; interrupt vector location
 
 INTERRUPT
-        BCF     WDTCON, SWDTEN  ; DESTIVA O WATCH-DOG TIMER
+        BCF     WDTCON, SWDTEN  ; DESTIVA O WATCH-DOG
         BCF     INTCON, GIE     ; DESABILITA INTERRUPÇÃO GLOBAL
 
         CALL    PUSHCTX
@@ -64,7 +67,6 @@ INTERRUPT
         GOTO    IrDA_FALLING
         BTFSC   PIR1, TMR2IF    ; TESTA SE A INTERRUPÇÃO ACONTECEU PELO CONTADOR
         GOTO    IrDA_TIME
-
 
 END_INTERRUPT
         CALL    POPCTX
@@ -85,74 +87,6 @@ IrDA_TIME
 ;
 ;
 ;============================================================================
-
-MAIN    CODE
-
-start   ; PRÉ-SET DO AMBIENTE DE EXECUÇÃO
-        CLRF    INTCON
-
-        BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
-        MOVLW   b'00000001'
-        MOVWF   OPTION_REG      ; DEFINE PRESCALER DO TIMER 0, COLOCA INT/RA2 EM FALLING EDGE
-        MOVLW   0X1F            ; b'00011111'
-        MOVWF   TRISA           ; DEFINE I/O DA PORTA A
-        CLRF    TRISC           ; DEFINE PORTA C COMO SAÍDAS
-        MOVLW   b'00001000'
-        MOVWF   ANSEL           ; DEFINE AS PORTAS QUE SÃO ANALÓGICAS
-        CLRF    IOCA
-        MOVLW   0X07
-        MOVWF   WPUA            ; DEFINE AS PORTAS QUE POSSUEM PULL-UP
-        ;MOVLW   0X30
-        MOVLW   0X10
-        MOVWF   ADCON1          ; DEFINE OSCILADOR DEDICADO PARA O CONVERSOR A/D
-        MOVLW   b'00000010'
-        MOVWF   PIE1            ; HABILITA INTERRUPÇÃO POR TIMER2
-        MOVLW   0XE1
-        MOVWF   PR2             ; COLOCA 160 NO COMPARADOR DO TIMER 2 (IrDA) 2560 us EM 4MHz
-
-
-        BCF     STATUS, RP0     ; APONTA PARA O BANCO 0
-        CLRF    PORTA           ; INIT PORTA
-        CLRF    PORTC
-        MOVLW   0X07
-        MOVWF   CMCON0          ; DESLIGA OS COMPARADORES
-        MOVLW   0X0C
-        MOVWF   ADCON0          ; HABILITA ENTRADA ANALÓGICA 3 E AJUSTA PARA SAIDA JUSTIFICADA A ESQUERDA
-        MOVLW   0X16
-        MOVWF   WDTCON          ; AJUSTA PRESCALER DO WATCH-DOG PARA 1:65536 ~ 2 segundos
-        CLRF    PIR1            ; ZERA FLAGS DE INTERRUPÇÕES DOS PERIFÉRICOS
-
-        MOVLW   b'01010000'
-        MOVWF   INTCON          ; HABILITA INT/RA2, PERIFÉRICOS
-
-        ; Inicalização da RAM
-        ;BTFSC   EECON1, WRERR   ; TESTA SE HOUVE ERRO DE GRAVAÇÃO DURANTE RESET
-        ;CALL    RECORD_POSITION
-        ;CALL    READ_POSITION
-
-        ; Teste da interação
-        MOVLW   0X70
-        MOVWF   pos_value
-        ;CALL    RECORD_POSITION
-
-        CALL    INIT_IrDA
-        MOVLW   0X84
-        MOVWF   IrDA_device
-
-;        CLRF    record_addr
-        BSF     INTCON, GIE
-
-        MOVLW   b'00100000'
-        XORWF   PORTA, F
-        MOVLW   0X20
-        MOVWF   FSR
-        MOVLW   0x03
-
-LOOP_MAIN   ; loop de execução continua
-        call    LDR_REFRESH
-        GOTO    LOOP_MAIN
-
-SELF    GOTO    SELF
 
 ;============================================================================
 ;
@@ -362,91 +296,32 @@ IrDA_COMMAND_15_BITS
         BTFSS   STATUS, Z           ; testa dispositivo
         GOTO    IrDA_SAMPLER_ABORT
 
-
+        ; TODO: tratar melhor o descarte do envio triplo
         DECF    IrDA_discard, F
         MOVLW   0x03
         ANDWF   IrDA_discard, F
         BTFSS   STATUS, Z
-        ;GOTO    IrDA_SAMPLER_ABORT  ; descarta envio triplo do controle
-
-
-        ;MOVF    IrDA_DATA+1, W
-        ;XORWF   IrDA_comand, W
-        ;BTFSC   STATUS, Z
-        ;GOTO    IrDA_SAMPLER_ABORT  ; tratar manter precionada
-
-        ;MOVF    IrDA_DATA+1, W
-        ;MOVWF   IrDA_comand
+        GOTO    IrDA_SAMPLER_ABORT  ; descarta envio triplo do controle
 
         DECF    IrDA_discard, F
 
         ; LOCALIZAR AÇÃO NA TABELA
         MOVF    IrDA_DATA+1, W
-        CALL    REMOTE_CONTROL_COMMANDS
-        MOVWF   w_temp
-        IORLW   0X00
-        BTFSC   STATUS, Z ; TESTA SE EXISTE AÇÃO PARA ESTA TECLA
-        GOTO    IrDA_SAMPLER_ABORT
+        BTFSC   SMCON, 0    ; testa qual tabela deve ser consultada auto/manual
+        CALL    REMOTE_CONTROL_COMMANDS_AUTO
+        BTFSS   SMCON, 0    ; só para não gerar mais goto
+        CALL    REMOTE_CONTROL_COMMANDS_MANUAL
 
-        MOVF    w_temp, W
+        MOVWF   IrDA_command    ; deve ser tratado pelo main que fica em loop
 
-        CLRF    PCLATH
-        MOVWF   PCL
-command_1
-command_2
-command_3
-command_4
-command_5
-command_6
-command_7
-command_8
-command_9
-command_0
-command_enter
-command_close_all
-command_open_all
-
-; para o movimento ficar suave manter o tempo total desta execução em 4ms
-command_motor_direct
-        clrf    counter
-st1     call    MOTOR_REVERSE
-        call    DELAYms
-        call    DELAYms
-        incf    counter, F
-        movlw   0x02
-        xorwf   counter, w
-        btfss   STATUS, Z
-        goto    st1
-        call    MOTOR_OFF
-        goto    RETORNO_DE_COMANDO
-
-; para o movimento ficar suave manter o tempo total desta execução em 4ms
-command_motor_reverse
-        clrf    counter
-st2     call    MOTOR_DIRECT
-        call    DELAYms
-        call    DELAYms
-        incf    counter, F
-        movlw   0x02
-        xorwf   counter, w
-        btfss   STATUS, Z
-        goto    st2
-        call    MOTOR_OFF
-        goto    RETORNO_DE_COMANDO
-
-
-
-
-RETORNO_DE_COMANDO
-        BCF     STATUS, RP0
-        MOVLW   b'00100000'
-        XORWF   PORTA, F
+        ; só para testar a recepção do controle, remover na versão final
+        ;BCF     STATUS, RP0
+        ;MOVLW   b'00100000'
+        ;XORWF   PORTA, F
 
 IrDA_SAMPLER_ABORT
         CALL    INIT_IrDA       ; INICIALIZA ESTRUTURAS
         RETURN
-
-
 
 ;=============================================================================
 ;
@@ -498,7 +373,7 @@ READ_EEPROM:
 ; até que se atinja o nível de luminosidade desejado
 ;
 ;=============================================================================
-LDR_REFRESH:
+AUTO_REFRESH:
         BSF     ADCON0, ADON        ; LIGA CONVERSOR A/D
         BSF     ADCON0, GO_NOT_DONE ; INICIA CONVERSÃO
 
@@ -655,6 +530,94 @@ KEEP_SHIFTING
 final_da_execucao               ;realizar tratamentos finais
 	RETURN
 
+SEND_DISPLAY:
+    BSF     DISPLAYp, ENA_DISP
+    RETURN
+;------------------------------------------------------------------------------
+;
+; Funções que devem ser chamadas alterando o pcl, não devem ser chamadas com
+; CALL, ver limite de endereço ao gerar o binário para se necessário ajustar o
+; PCLATCH, por hora o pc latch deve ser 1
+;
+; Todas as funções devem terminar com:
+;       goto    RETORNO_DE_COMANDO
+;
+;------------------------------------------------------------------------------
+    org     0x0300
+        GOTO    RETORNO_DE_COMANDO ; garante que se for apontado para algum lugar
+                                   ; depois das funções ao dar o overflow volta
+                                   ; para o main, também server quando não há
+                                   ; comando associado
+cmd_digit
+cmd_apply
+cmd_upper
+cmd_lower
+        GOTO    RETORNO_DE_COMANDO
+
+cmd_display:
+        ; converter valor especificado para bcd
+        CALL    SEND_DISPLAY
+        goto    RETORNO_DE_COMANDO
+
+
+
+; para o movimento ficar suave manter o tempo total desta execução em 4ms
+cmd_open:
+        clrf    counter
+
+st1     call    MOTOR_REVERSE
+
+        call    DELAYms
+        call    DELAYms
+        incf    counter, F
+        movlw   0x02
+        xorwf   counter, w
+        btfss   STATUS, Z
+
+        goto    st1
+
+        call    MOTOR_OFF
+        goto    RETORNO_DE_COMANDO
+
+; para o movimento ficar suave manter o tempo total desta execução em 4ms
+cmd_close:
+        clrf    counter
+
+st2     call    MOTOR_DIRECT
+
+        call    DELAYms
+        call    DELAYms
+        incf    counter, F
+        movlw   0x02
+        xorwf   counter, w
+        btfss   STATUS, Z
+
+        goto    st2
+
+        call    MOTOR_OFF
+        goto    RETORNO_DE_COMANDO
+
+cmd_auto:
+        BSF     SMCON, MODEAUTO        ; coloca em modo automático
+        CALL    AUTO_REFRESH
+        BSF     WDTCON, SWDTEN  ; ATIVA O WATCH-DOG TIMER
+        goto    RETORNO_DE_COMANDO
+
+cmd_manual:
+        BCF     SMCON, MODEAUTO
+        goto    RETORNO_DE_COMANDO
+
+cmd_show_now:
+        BSF     ADCON0, ADON        ; LIGA CONVERSOR A/D
+        BSF     ADCON0, GO_NOT_DONE ; INICIA CONVERSÃO
+        BTFSC   ADCON0, GO_NOT_DONE ; TESTA SE TERMINOU
+        GOTO    $-1
+        MOVF    ADRESH, W           ; ARMAZENA O RESULTADO DA CONVERSÃO
+        MOVWF   B1
+        CLRF    B2
+        CALL    SEND_DISPLAY
+        goto    RETORNO_DE_COMANDO
+
 
 ;=============================================================================
 ;
@@ -663,6 +626,7 @@ final_da_execucao               ;realizar tratamentos finais
 ;=============================================================================
     org     0x0200  ; AJUSTA INICIO DAS TABELAS, 255 POSIÇÕES
 BIT_PATTERN:
+    CLRF    PCLATH
     BSF     PCLATH, 1   ; ACERTA DESLOCAMENTO SOMADO AO PCL
     ANDLW   0X07        ; remove possíveis saltos para fora da tabela
     ADDWF   PCL, F      ; move o PC para a posição desejada
@@ -733,32 +697,33 @@ BIT_PATTERN:
 ;
 ;============================================================================
 
-REMOTE_CONTROL_COMMANDS:
+REMOTE_CONTROL_COMMANDS_AUTO:
+    CLRF    PCLATH
     BSF     PCLATH, 1   ; ACERTA O DESLOCAMENTO SOMADO AO PCL
     ANDLW   0X3F        ; remove possíveis saltos para fora da tabela
     ADDWF   PCL, F      ; move o PC para a posição desejada
-    RETLW   0X00        ;   1				0x00 	VCR/TV
-    RETLW   0X00        ;   2				0x01 	VCR/TV
-    RETLW   0X00        ;   3				0x02 	VCR/TV
-    RETLW   0X00        ;   4				0x03 	VCR/TV
-    RETLW   0X00        ;   5				0x04 	VCR/TV
-    RETLW   0X00        ;   6				0x05 	VCR/TV
-    RETLW   0X00        ;   7				0x06 	VCR/TV
-    RETLW   0X00        ;   8				0x07 	VCR/TV
-    RETLW   0X00        ;   9				0x08 	VCR/TV
-    RETLW   0X00        ;   0				0x09 	VCR/TV
+    RETLW   cmd_digit        ;   1				0x00 	VCR/TV
+    RETLW   cmd_digit        ;   2				0x01 	VCR/TV
+    RETLW   cmd_digit        ;   3				0x02 	VCR/TV
+    RETLW   cmd_digit        ;   4				0x03 	VCR/TV
+    RETLW   cmd_digit        ;   5				0x04 	VCR/TV
+    RETLW   cmd_digit        ;   6				0x05 	VCR/TV
+    RETLW   cmd_digit        ;   7				0x06 	VCR/TV
+    RETLW   cmd_digit        ;   8				0x07 	VCR/TV
+    RETLW   cmd_digit        ;   9				0x08 	VCR/TV
+    RETLW   cmd_digit        ;   0				0x09 	VCR/TV
     RETLW   0X00        ;                   0x0A
-    RETLW   RETORNO_DE_COMANDO        ;   ENTER			0x0B 	VCR/TV
+    RETLW   cmd_apply        ;   ENTER			0x0B 	VCR/TV
     RETLW   0X00        ;                   0x0C
     RETLW   0X00        ;                   0x0D
     RETLW   0X00        ;                   0x0E
     RETLW   0X00        ;                   0x0F
     RETLW   0X00        ;   CH+				0x10 	VCR/TV
     RETLW   0X00        ;   CH-				0x11	VCR/TV
-    RETLW   command_motor_direct        ;   VOL+			0x12	TV
-    RETLW   command_motor_reverse        ;   VOL-			0x13 	TV
+    RETLW   cmd_upper        ;   VOL+			0x12	TV
+    RETLW   cmd_lower        ;   VOL-			0x13 	TV
     RETLW   0X00        ;                   0x14
-    RETLW   0X00        ;   POWER			0x15 	VCR/TV
+    RETLW   cmd_manual        ;   POWER			0x15 	VCR/TV
     RETLW   0X00        ;                   0x16
     RETLW   0X00        ;   AUDIO MONITOR	0x17 	VCR/TV
     RETLW   0X00        ;                   0x18
@@ -795,17 +760,99 @@ REMOTE_CONTROL_COMMANDS:
     RETLW   0X00        ;                   0x37
     RETLW   0X00        ;                   0x38
     RETLW   0X00        ;                   0x39
-    RETLW   0X00        ;   DISPLAY			0x3A	TV
+    RETLW   cmd_display        ;   DISPLAY			0x3A	TV
     RETLW   0X00        ;                   0x3B
     RETLW   0X00        ;                   0x3C
     RETLW   0X00        ;                   0x3D
     RETLW   0X00        ;                   0x3E
     RETLW   0X00        ;                   0x3F
 
+REMOTE_CONTROL_COMMANDS_MANUAL:
+    CLRF    PCLATH
+    BSF     PCLATH, 1       ; ACERTA O DESLOCAMENTO SOMADO AO PCL
+    ANDLW   0X3F            ; remove possíveis saltos para fora da tabela
+    ADDWF   PCL, F          ; move o PC para a posição desejada
+    RETLW   cmd_display            ;   1				0x00 	VCR/TV
+    RETLW   0X00            ;   2				0x01 	VCR/TV
+    RETLW   0X00            ;   3				0x02 	VCR/TV
+    RETLW   0X00            ;   4				0x03 	VCR/TV
+    RETLW   0X00            ;   5				0x04 	VCR/TV
+    RETLW   0X00            ;   6				0x05 	VCR/TV
+    RETLW   0X00            ;   7				0x06 	VCR/TV
+    RETLW   0X00            ;   8				0x07 	VCR/TV
+    RETLW   0X00            ;   9				0x08 	VCR/TV
+    RETLW   0X00            ;   0				0x09 	VCR/TV
+    RETLW   0X00            ;                   0x0A
+    RETLW   0X00            ;   ENTER			0x0B 	VCR/TV
+    RETLW   0X00            ;                   0x0C
+    RETLW   0X00            ;                   0x0D
+    RETLW   0X00            ;                   0x0E
+    RETLW   0X00            ;                   0x0F
+    RETLW   0X00            ;   CH+				0x10 	VCR/TV
+    RETLW   0X00            ;   CH-				0x11	VCR/TV
+    RETLW   cmd_open        ;   VOL+			0x12	TV
+    RETLW   cmd_close       ;   VOL-			0x13 	TV
+    RETLW   0X00            ;                   0x14
+    RETLW   cmd_auto        ;   POWER			0x15 	VCR/TV
+    RETLW   0X00            ;                   0x16
+    RETLW   0X00            ;   AUDIO MONITOR	0x17 	VCR/TV
+    RETLW   0X00            ;                   0x18
+    RETLW   0X00            ;                   0x19
+    RETLW   0X00            ;                   0x1A
+    RETLW   0X00            ;                   0x1B
+    RETLW   0X00            ;                   0x1C
+    RETLW   0X00            ;                   0x1D
+    RETLW   0X00            ;                   0x1E
+    RETLW   0X00            ;                   0x1F
+    RETLW   0X00            ;                   0x20
+    RETLW   0X00            ;                   0x21
+    RETLW   0X00            ;                   0x22
+    RETLW   0X00            ;                   0x23
+    RETLW   0X00            ;                   0x24
+    RETLW   0X00            ;   TV/VIDEO		0x25	TV
+    RETLW   0X00            ;                   0x26
+    RETLW   0X00            ;                   0x27
+    RETLW   0X00            ;                   0x28
+    RETLW   0X00            ;                   0x29
+    RETLW   0X00            ;                   0x2A
+    RETLW   0X00            ;                   0x2B
+    RETLW   0X00            ;                   0x2C
+    RETLW   0X00            ;                   0x2D
+    RETLW   0X00            ;                   0x2E
+    RETLW   0X00            ;                   0x2F
+    RETLW   0X00            ;                   0x30
+    RETLW   0X00            ;                   0x31
+    RETLW   0X00            ;                   0x32
+    RETLW   0X00            ;                   0x33
+    RETLW   0X00            ;                   0x34
+    RETLW   0X00            ;                   0x35
+    RETLW   0X00            ;                   0x36
+    RETLW   0X00            ;                   0x37
+    RETLW   0X00            ;                   0x38
+    RETLW   0X00            ;                   0x39
+    RETLW   cmd_show_now    ;   DISPLAY			0x3A	TV
+    RETLW   0X00            ;                   0x3B
+    RETLW   0X00            ;                   0x3C
+    RETLW   0X00            ;                   0x3D
+    RETLW   0X00            ;                   0x3E
+    RETLW   0X00            ;                   0x3F
+
 
 
 ;TABELA PARA O DISPLAY DE SETE SEGMENTOS
+;
+; Lógica negada
+;
+;       a
+;    f     b
+;       g
+;    e     c
+;       d
+;
+;   byte = abcdefg(dot)
+
 SEVEN_SEG_CODE_LOOKUP:
+    CLRF    PCLATH
     BSF PCLATH, 1
     ADDWF PCL, F
     RETLW b'00000011'           ;0
@@ -818,9 +865,15 @@ SEVEN_SEG_CODE_LOOKUP:
     RETLW b'00011111'           ;7
     RETLW b'00000001'           ;8
     RETLW b'00001001'           ;9
+    RETLW b'00000101'           ;a
+    RETLW b'11000001'           ;b
+    RETLW b'11100101'           ;c
+    RETLW b'10000101'           ;d
+    RETLW b'00100001'           ;e
+    RETLW b'01110001'           ;f
 
 ; tabela com valores a serem somados no conversor bcd -> binário
-BCD_TO_BINARIO_DOZENS:
+BCD_TO_BINARY_DOZENS:
     MOVWF   w_temp
     SUBLW   0X09
     BTFSC   STATUS, C
@@ -837,5 +890,104 @@ BCD_TO_BINARIO_DOZENS:
     RETLW   0x46        ; 70
     RETLW   0x50        ; 80
     RETLW   0x5A        ; 90
+
+
+MAIN    CODE
+
+start   ; PRÉ-SET DO AMBIENTE DE EXECUÇÃO
+        CLRF    INTCON
+
+        BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
+        MOVLW   b'00000001'
+        MOVWF   OPTION_REG      ; DEFINE PRESCALER DO TIMER 0, COLOCA INT/RA2 EM FALLING EDGE
+        MOVLW   0X1F            ; b'00011111'
+        MOVWF   TRISA           ; DEFINE I/O DA PORTA A
+        CLRF    TRISC           ; DEFINE PORTA C COMO SAÍDAS
+        MOVLW   b'00001000'
+        MOVWF   ANSEL           ; DEFINE AS PORTAS QUE SÃO ANALÓGICAS
+        CLRF    IOCA
+        MOVLW   0X07
+        MOVWF   WPUA            ; DEFINE AS PORTAS QUE POSSUEM PULL-UP
+        ;MOVLW   0X30
+        MOVLW   0X10
+        MOVWF   ADCON1          ; DEFINE OSCILADOR DEDICADO PARA O CONVERSOR A/D
+        MOVLW   b'00000010'
+        MOVWF   PIE1            ; HABILITA INTERRUPÇÃO POR TIMER2
+        MOVLW   0XE1
+        MOVWF   PR2             ; COLOCA 160 NO COMPARADOR DO TIMER 2 (IrDA) 2560 us EM 4MHz
+
+
+        BCF     STATUS, RP0     ; APONTA PARA O BANCO 0
+        CLRF    PORTA           ; INIT PORTA
+        CLRF    PORTC
+        MOVLW   0X07
+        MOVWF   CMCON0          ; DESLIGA OS COMPARADORES
+        MOVLW   0X0C
+        MOVWF   ADCON0          ; HABILITA ENTRADA ANALÓGICA 3 E AJUSTA PARA SAIDA JUSTIFICADA A ESQUERDA
+        MOVLW   0X16
+        MOVWF   WDTCON          ; AJUSTA PRESCALER DO WATCH-DOG PARA 1:65536 ~ 2 segundos
+        CLRF    PIR1            ; ZERA FLAGS DE INTERRUPÇÕES DOS PERIFÉRICOS
+
+        MOVLW   b'01010000'
+        MOVWF   INTCON          ; HABILITA INT/RA2, PERIFÉRICOS
+
+        ; Inicalização da RAM
+        ;BTFSC   EECON1, WRERR   ; TESTA SE HOUVE ERRO DE GRAVAÇÃO DURANTE RESET
+        ;CALL    RECORD_POSITION
+        ;CALL    READ_POSITION
+
+        ; Teste da interação
+        MOVLW   0X70
+        MOVWF   pos_value
+        ;CALL    RECORD_POSITION
+
+;        CLRF    record_addr
+        BSF     INTCON, GIE
+
+        MOVLW   b'00100000'
+        XORWF   PORTA, F
+        MOVLW   0X20
+        MOVWF   FSR
+        MOVLW   0x03
+
+        CLRF    SMCON
+        CLRF    IrDA_command
+        call    INIT_IrDA
+
+RETORNO_DE_COMANDO
+
+
+        BTFSS   SMCON, MODEAUTO    ; se automático liga watch-dog
+        BTFSC   DISPLAYp, ENA_DISP
+        BSF     WDTCON, SWDTEN
+
+
+        SLEEP
+        NOP
+
+        ; tratar melhor a questão de se estar segurando um botão e a resposta do motor
+        BTFSC   SMCON, MODEAUTO ; TESTA SE ESTÁ EM MODO AUTOMÁTICO
+        CALL    AUTO_REFRESH
+
+        BTFSC   STATUS, NOT_TO  ; testa se saiu do sleep por watch-dog
+        GOTO    MAIN_1
+        BCF     DISPLAYp, ENA_DISP  ; desliga display
+        BSF     STATUS, NOT_TO
+        GOTO    RETORNO_DE_COMANDO
+
+MAIN_1
+        ; está recebendo dados do controle remoto, não pode desligar relógio
+        BTFSC   T2CON, TMR2ON
+        GOTO    $-1
+
+        ; alteração do pc usar com cuidado
+        MOVLW   0x03
+        MOVWF   PCLATH      ; aponta para 0x0300
+        MOVF    IrDA_command, W
+        CLRF    IrDA_command        ; garante que nada será executado em outras funções
+        MOVWF   PCL
+
+        GOTO    start    ; ocorreu algum erro, resetar
+
 
     END                         ; directive 'end of program'

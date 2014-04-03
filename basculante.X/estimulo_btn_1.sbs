@@ -1,0 +1,133 @@
+## SCL Builder Setup File: Do not edit!!
+
+## VERSION: MPLAB X
+## FORMAT:  v2.00.01
+## DEVICE:  PIC16F684
+
+## PINREGACTIONS
+us
+No Repeat
+INT
+--
+0
+0
+--
+2400
+1
+--
+3000
+0
+--
+3600
+1
+--
+4200
+0
+--
+4800
+1
+--
+5400
+0
+--
+6000
+1
+--
+6600
+0
+--
+7200
+1
+--
+7800
+0
+--
+8400
+1
+--
+9000
+0
+--
+9600
+1
+--
+10200
+0
+--
+10800
+1
+--
+11400
+0
+--
+12000
+0
+--
+12600
+1
+--
+13200
+0
+--
+13800
+1
+--
+14400
+0
+--
+15000
+1
+--
+15600
+0
+--
+16200
+1
+--
+16800
+0
+--
+17400
+1
+--
+&
+## ADVPINREGACTIONS
+--
+&
+--
+COND2
+SFR
+ADCON0
+=
+0x0
+0
+cyc
+
+--
+&
+## CLOCK
+&
+## STIMULUSFILE
+&
+## RESPONSEFILE
+&
+## ASYNCH
+Pin
+RA2
+Set High
+
+
+-1
+--
+Pin
+RA2
+Set Low
+
+
+-1
+--
+&
+## ADVANCEDSCL
+
+1
+&
