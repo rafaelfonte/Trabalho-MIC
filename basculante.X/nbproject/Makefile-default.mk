@@ -108,6 +108,9 @@ else
 dist/${CND_CONF}/${IMAGE_TYPE}/basculante.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
 	${MP_LD} $(MP_EXTRA_LD_PRE)   -p$(MP_PROCESSOR_OPTION)  -w  -m"${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"   -z__MPLAB_BUILD=1  -odist/${CND_CONF}/${IMAGE_TYPE}/basculante.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}     
+	@echo Normalizing hex file
+	@"/opt/microchip/mplabx/mplab_ide/mplab_ide/modules/../../bin/hexmate" --edf="/opt/microchip/mplabx/mplab_ide/mplab_ide/modules/../../dat/en_msgs.txt" dist/${CND_CONF}/${IMAGE_TYPE}/basculante.X.${IMAGE_TYPE}.hex -odist/${CND_CONF}/${IMAGE_TYPE}/basculante.X.${IMAGE_TYPE}.hex
+
 endif
 
 

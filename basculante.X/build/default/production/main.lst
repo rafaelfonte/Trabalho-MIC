@@ -1,4 +1,4 @@
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  1
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -20,1113 +20,1201 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00004 
                       00005     errorlevel  -302                ; suppress message 302 from list file
                       00006 
-  00000000            00007 ADDR_EE_POS EQU 0x00
-  00000002            00008 IrDAb       EQU RA2
-  00000005            00009 IrDAp       EQU PORTA
-  00000005            00010 ENA_DISP    EQU RA5
-  00000005            00011 DISPLAYp    EQU PORTA
-  00000001            00012 DEVICE      EQU 0X01    ; MODO TV DO CONTROLE SONY RMT-V297C
-  00000000            00013 MODEAUTO    EQU 0
+  00000000            00007 ADDR_EE_POS     EQU 0x00
+  00000002            00008 IrDAb           EQU RA2
+  00000005            00009 IrDAp           EQU PORTA
+  00000005            00010 ENA_DISP        EQU RA5
+  00000005            00011 DISPLAYp        EQU PORTA
+  00000001            00012 DEVICE          EQU 0X01    ; MODO TV DO CONTROLE SONY RMT-V297C
+  00000000            00013 MODEAUTO        EQU 0
                       00014 
-  00000020            00015 STACK_BASE  EQU 0X20
-  0000006F            00016 STACK_LIMIT EQU 0X6F
-                      00017 
-                      00018 
-                      00019             UDATA   0X50
-0050                  00020 IrDA_bits   res 1
-0051                  00021 IrDA_discard res 1
-0052                  00022 IrDA_DATA   res 3
-0055                  00023 IrDA_command res 1
-0056                  00024 SMCON       res 1
-                      00025 
-0057                  00026 pos_value   res 1   ; 0 desligado, outros define o nível de luminosidade
-0058                  00027 motor_pos   res 1
-0059                  00028 counter     res 1
-                      00029 
-005A                  00030 B1          res 1
-005B                  00031 B2          res 1
-005C                  00032 LOOP_BCD_COUNTER    res 1
-005D                  00033 VALUE_BIN   res 1
+                      00015                 UDATA   0X50
+0050                  00016 IrDA_bits       res 1
+0051                  00017 IrDA_discard    res 1
+0052                  00018 IrDA_DATA       res 3
+0055                  00019 IrDA_command    res 1
+0056                  00020 SMCON           res 1
+0057                  00021 count_disp      res 1
+0058                  00022 w_disp          res 1
+                      00023 
+0059                  00024 pos_value       res 1   ; 0 desligado, outros define o nível de luminosidade
+005A                  00025 motor_pos       res 1
+005B                  00026 counter         res 1
+                      00027 
+005C                  00028 B1              res 1
+005D                  00029 B2              res 1
+005E                  00030 B1_temp         res 1
+005F                  00031 B2_temp         res 1
+0060                  00032 LOOP_BCD_COUNTER    res 1
+0061                  00033 VALUE_BIN       res 1
                       00034 
                       00035 
-                      00036 
-                      00037 INT_VAR     UDATA_SHR
-0000                  00038 w_temp      res 1   ; armazena backup do acumulador
-0001                  00039 w_bk        res 1
-0002                  00040 status_temp res 1
+                      00036                 UDATA_SHR
+0000                  00037 w_temp          res 1
+0001                  00038 w_bk            res 1   ; armazena backup do acumulador
+0002                  00039 status_bk       res 1
+                      00040 
                       00041 
-                      00042 
-0003                  00043 record_data res 1
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  2
+0003                  00042 record_data     res 1
+0004                  00043 record_addr     res 1
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0004                  00044 record_addr res 1
-                      00045 
-                      00046 RESET_VECTOR    CODE    0x0000     ; processor reset vector
-0000   2???           00047         goto    start              ; go to beginning of program
+                      00044 
+                      00045 RESET_VECTOR    CODE    0x0000  ; processor reset vector
+0000   2???           00046         goto    start           ; go to beginning of program
+                      00047 
                       00048 
-                      00049 
-                      00050 ;============================================================================
-                      00051 ; Seção de tratamento de interrupções
-                      00052 ;
-                      00053 ;   ESTA ESTRUTURA FOI UTILIZADA PARA NÃO PERMITIR CHAMADAS CONTINUAS DENTRO
-                      00054 ;   DESTA FUNÇÃO CASO SEJA CHAMADO MAIS DE UMA INTERRUPÇÃO, SERVE PARA MANTER
-                      00055 ;   A HIERARQUIA DE PROCESSAMENTO
-                      00056 ;
-                      00057 ;============================================================================
-                      00058 INT_VECTOR      CODE    0x0004     ; interrupt vector location
-                      00059 
-0004                  00060 INTERRUPT
-0004   1018           00061         BCF     WDTCON, SWDTEN  ; DESTIVA O WATCH-DOG
-0005   138B           00062         BCF     INTCON, GIE     ; DESABILITA INTERRUPÇÃO GLOBAL
-                      00063 
-0006   2???           00064         CALL    PUSHCTX
-                      00065 
-0007   188B           00066         BTFSC   INTCON, INTF    ; TESTA SE A INTERRUPÇÃO OCORREU PELA ENTRADA DO IrDA
-0008   2???           00067         GOTO    IrDA_FALLING
-0009   188C           00068         BTFSC   PIR1, TMR2IF    ; TESTA SE A INTERRUPÇÃO ACONTECEU PELO CONTADOR
-000A   2???           00069         GOTO    IrDA_TIME
-                      00070 
-000B                  00071 END_INTERRUPT
-000B   2???           00072         CALL    POPCTX
-000C   178B           00073         BSF     INTCON, GIE     ; HABILITA INTERRUPÇÃO GLOBAL
-000D   0009           00074         retfie                  ; return from interrupt
-                      00075 
-000E                  00076 IrDA_FALLING
-000E   2???           00077         CALL    IrDA_FALL    ; CHAMA ROTINA DE TRATAMENTO DA RECEPÇÃO DO CONTROLE REMOTO
-000F   2???           00078         GOTO    END_INTERRUPT
-0010                  00079 IrDA_TIME
-0010   2???           00080         CALL    IrDA_SAMPLER
-0011   2???           00081         GOTO    END_INTERRUPT
-                      00082 
-                      00083 
-                      00084 ;============================================================================
-                      00085 ; boostrap da máquina
-                      00086 ;
-                      00087 ;
-                      00088 ;
-                      00089 ;============================================================================
+                      00049 ;============================================================================
+                      00050 ; Seção de tratamento de interrupções
+                      00051 ;
+                      00052 ;   ESTA ESTRUTURA FOI UTILIZADA PARA NÃO PERMITIR CHAMADAS CONTINUAS DENTRO
+                      00053 ;   DESTA FUNÇÃO CASO SEJA CHAMADO MAIS DE UMA INTERRUPÇÃO, SERVE PARA MANTER
+                      00054 ;   A HIERARQUIA DE PROCESSAMENTO
+                      00055 ;
+                      00056 ;============================================================================
+                      00057 INT_VECTOR      CODE    0x0004  ; interrupt vector location
+                      00058 
+0004                  00059 INTERRUPT
+0004   1018           00060         BCF     WDTCON, SWDTEN  ; DESTIVA O WATCH-DOG
+0005   138B           00061         BCF     INTCON, GIE     ; DESABILITA INTERRUPÇÃO GLOBAL
+                      00062 
+0006   00??           00063         movwf   w_bk            ; save off current W register contents
+0007   0803           00064         movf    STATUS, W       ; move status register into W register
+0008   00??           00065         movwf   status_bk       ; save off contents of STATUS register
+                      00066 
+0009   188B           00067         BTFSC   INTCON, INTF    ; TESTA SE A INTERRUPÇÃO OCORREU PELA ENTRADA DO IrDA
+000A   2???           00068         GOTO    IrDA_FALLING
+000B   188C           00069         BTFSC   PIR1, TMR2IF    ; TESTA SE A INTERRUPÇÃO ACONTECEU PELO CONTADOR
+000C   2???           00070         GOTO    IrDA_TIME
+                      00071 
+000D                  00072 END_INTERRUPT
+000D   08??           00073         movf    status_bk, W    ; retrieve copy of STATUS register
+000E   0083           00074         movwf   STATUS          ; restore pre-isr STATUS register contents
+000F   0E??           00075         swapf   w_bk, F
+0010   0E??           00076         swapf   w_bk, W         ; restore pre-isr W register contents
+                      00077 
+0011   178B           00078         BSF     INTCON, GIE     ; HABILITA INTERRUPÇÃO GLOBAL
+0012   0009           00079         retfie                  ; return from interrupt
+                      00080 
+0013                  00081 IrDA_FALLING
+0013   108B           00082         BCF     INTCON, INTF    ; TESTA SE A INTERRUPÇÃO OCORREU PELA ENTRADA DO IrDA
+0014   2???           00083         CALL    IrDA_FALL       ; CHAMA ROTINA DE TRATAMENTO DA RECEPÇÃO DO CONTROLE REMOTO
+0015   2???           00084         GOTO    END_INTERRUPT
+0016                  00085 IrDA_TIME
+0016   108C           00086         BCF     PIR1, TMR2IF    ; TESTA SE A INTERRUPÇÃO ACONTECEU PELO CONTADOR
+0017   2???           00087         CALL    IrDA_SAMPLER
+0018   2???           00088         GOTO    END_INTERRUPT
+                      00089 
                       00090 
-                      00091 ;============================================================================
-                      00092 ;
-                      00093 ; Seção com funções
-                      00094 ;
+                      00091 
+                      00092 
+                      00093 ;============================================================================
+                      00094 ; boostrap da máquina
                       00095 ;
-                      00096 ;============================================================================
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  3
+                      00096 ;
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00097 
-                      00098 FUNCTIONS CODE
+                      00097 ;
+                      00098 ;============================================================================
                       00099 
-                      00100 ;============================================================================
-                      00101 ;
-                      00102 ;   FUNÇÕES PUSH-POP PARA IMPLEMENTAR UMA PILHA
-                      00103 ;
-                      00104 ;============================================================================
-                      00105 
-0000                  00106 PUSHW:      ; COLOCA O CONTEÚDO DE W NO TOPO DA PILHA
-0000   0080           00107         MOVWF       INDF          ; COLOCA W NA PILHA
-0001   0F84           00108         INCFSZ      FSR, F        ; INCREMENTA PONTEIRO SEM ALTERAR Z
-0002   0008           00109         RETURN
-                      00110 
-0003                  00111 POPW:       ; REMOVE O TOPO DA PILHA E COLOCA EM W
-0003   0B84           00112         DECFSZ      FSR, F      ; DECREMENTA PONTEIRO SEM ALTERAR ESTADOS
-0004   0E80           00113         SWAPF       INDF, F
-0005   0E00           00114         SWAPF       INDF, W     ; COLOCA TOPO DA PILHA EM W
-0006   0008           00115         RETURN
-                      00116 
-0007                  00117 PUSHCTX:    ; SALVA CONTEXTO NA PILHA
-0007   2???           00118         CALL    PUSHW           ; salva w
-0008   0E03           00119         SWAPF   STATUS, W
-0009   2???           00120         CALL    PUSHW           ; salva status
-000A   0008           00121         RETURN
-000B                  00122 POPCTX:     ; RECUPERA CONTEXTO DA PILHA
-000B   2???           00123         CALL    POPW
-000C   00??           00124         MOVWF   status_temp
-000D   0E??           00125         SWAPF   status_temp, W   ; restaura status
-000E   0083           00126         MOVWF   STATUS
-000F   2???           00127         CALL    POPW        ; restaura w
-0010   0008           00128         RETURN
-                      00129 
-                      00130 
-                      00131 ;============================================================================
-                      00132 ;
-                      00133 ;   Delay de 1000 ciclos de clock de instrução
-                      00134 ;
-                      00135 ;     Presupõe que a interrupção de overflow do timer0 está desativada, caso
-                      00136 ;   contrário o comportamento é imprevisível.
-                      00137 ;
-                      00138 ;     O timer utiliza um ajuste para se obter o consumo de 1000 ciclos desde
-                      00139 ;   a instrução de chamada até o retorno na instrução seguinte
-                      00140 ;
-                      00141 ;==============================================================================
+                      00100 MAIN    CODE
+                      00101 
+0000                  00102 start   ; PRÉ-SET DO AMBIENTE DE EXECUÇÃO
+0000   018B           00103         CLRF    INTCON
+                      00104 
+0001   1683           00105         BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
+0002   3001           00106         MOVLW   b'00000001'
+0003   0081           00107         MOVWF   OPTION_REG      ; DEFINE PRESCALER DO TIMER 0, COLOCA INT/RA2 EM FALLING EDGE
+0004   301F           00108         MOVLW   0X1F            ; b'00011111'
+0005   0085           00109         MOVWF   TRISA           ; DEFINE I/O DA PORTA A
+0006   0187           00110         CLRF    TRISC           ; DEFINE PORTA C COMO SAÍDAS
+0007   3008           00111         MOVLW   b'00001000'
+0008   0091           00112         MOVWF   ANSEL           ; DEFINE AS PORTAS QUE SÃO ANALÓGICAS
+0009   0196           00113         CLRF    IOCA
+000A   3004           00114         MOVLW   b'00000100'
+000B   0095           00115         MOVWF   WPUA            ; DESATIVA PULL-UP
+000C   3010           00116         MOVLW   0X10
+000D   009F           00117         MOVWF   ADCON1          ; DEFINE OSCILADOR 1/8 ~ 2us PARA O CONVERSOR A/D
+000E   3002           00118         MOVLW   b'00000010'
+000F   008C           00119         MOVWF   PIE1            ; HABILITA INTERRUPÇÃO POR TIMER2
+0010   30E1           00120         MOVLW   0XE1
+0011   0092           00121         MOVWF   PR2             ; COLOCA 160 NO COMPARADOR DO TIMER 2 (IrDA) 2560 us EM 4MHz
+                      00122 
+                      00123 
+0012   1283           00124         BCF     STATUS, RP0     ; APONTA PARA O BANCO 0
+0013   0185           00125         CLRF    PORTA           ; INIT PORTA
+0014   0187           00126         CLRF    PORTC
+0015   3007           00127         MOVLW   0X07
+0016   0099           00128         MOVWF   CMCON0          ; DESLIGA OS COMPARADORES
+0017   300C           00129         MOVLW   0X0C
+0018   009F           00130         MOVWF   ADCON0          ; HABILITA ENTRADA ANALÓGICA 3 E AJUSTA PARA SAIDA JUSTIFICADA A ESQUERD
+                            A
+0019   3016           00131         MOVLW   0X16
+001A   0098           00132         MOVWF   WDTCON          ; AJUSTA PRESCALER DO WATCH-DOG PARA 1:65536 ~ 2 segundos
+001B   018C           00133         CLRF    PIR1            ; ZERA FLAGS DE INTERRUPÇÕES DOS PERIFÉRICOS
+                      00134 
+001C   3050           00135         MOVLW   b'01010000'
+001D   008B           00136         MOVWF   INTCON          ; HABILITA INT/RA2, PERIFÉRICOS
+                      00137 
+                      00138         ; Inicalização da RAM
+                      00139         ;BTFSC   EECON1, WRERR   ; TESTA SE HOUVE ERRO DE GRAVAÇÃO DURANTE RESET
+                      00140         ;CALL    RECORD_POSITION
+                      00141         ;CALL    READ_POSITION
                       00142 
-0011                  00143 DELAYms: ; com preescaler em 1:4 desde o call até o retorno gasta 1000 ciclos
-                      00144 
-                      00145         ; AJUSTA PARÂMETROS DO CONTADOR
-                      00146         ;
-                      00147         ; PRESCALER 1:4
-                      00148         ; INCREMENTA NA DESCIDA DO CLOCK
-                      00149         ; USA O CLOCK DE INSTRUÇÃO COMO BATE DE TEMPO
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  4
+                      00143         ; Teste da interação
+001E   3070           00144         MOVLW   0X70
+001F   00??           00145         MOVWF   pos_value
+                      00146         ;CALL    RECORD_POSITION
+                      00147 
+                      00148 ;        CLRF    record_addr
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00150         ;
-0011   30C0           00151         MOVLW   b'11000000'
-0012   0501           00152         ANDWF   OPTION_REG, W
-0013   3801           00153         IORLW   b'00000001'
-0014   0081           00154         MOVWF   OPTION_REG
-                      00155 
-                      00156 ;laço do timer
-0015   300A           00157         MOVLW   0X0A                ; AJUSTA CONTADOR PARA GERAR A SAÍDA CORRETA
-0016   0081           00158         MOVWF   TMR0                ; ATUALIZA CONTADOR
-0017   110B           00159         BCF     INTCON, T0IF
-0018   1D0B           00160         BTFSS   INTCON, T0IF
-0019   2???           00161         GOTO $-1
-001A   0008           00162     RETURN
+0020   178B           00149         BSF     INTCON, GIE
+                      00150 
+0021   01??           00151         CLRF    SMCON           ; inicializa estrutura da maquina de estados
+0022   01??           00152         CLRF    IrDA_command    ; inicializa comando do controle remoto
+0023   2???           00153         CALL    INIT_IrDA       ; inicializa estruturas de recepção do controle remoto
+0024   3045           00154         movlw   0x45
+0025   00??           00155         movwf   B1
+                      00156 
+                      00157         ;BSF SMCON, MODEAUTO
+                      00158 
+0026                  00159 MAIN_1
+0026   1C00           00160         BTFSS   SMCON, MODEAUTO    ; se automático liga watch-dog
+0027   1E85           00161         BTFSS   DISPLAYp, ENA_DISP
+0028   1418           00162         BSF     WDTCON, SWDTEN
                       00163 
-                      00164 
-                      00165 ;============================================================================
-                      00166 ;
-                      00167 ;   INICIALIZA ESTRUTURAS PARA RECEPÇÃO DE UM COMANDO DO CONTROLE REMOTO
-                      00168 ;
-                      00169 ;============================================================================
-001B                  00170 INIT_IrDA:
-001B   01??           00171         CLRF    IrDA_bits
-001C   3011           00172         MOVLW   b'00010001'     ; PRESCALER 1:4 POSTSCALER 1:3
-001D   0092           00173         MOVWF   T2CON
-001E   0191           00174         CLRF    TMR2            ; ZERA CONTADOR
-001F   0008           00175         RETURN
+0029   1D12           00164         BTFSS   T2CON, TMR2ON
+002A   0063           00165         SLEEP
+002B   1018           00166         BCF     WDTCON, SWDTEN
+                      00167 
+                      00168 
+002C   1800           00169         BTFSC   SMCON, 0
+002D   2???           00170         CALL    AUTO_REFRESH
+                      00171 
+002E   1A03           00172         BTFSC   STATUS, NOT_TO  ; testa se saiu do sleep por watch-dog
+002F   2???           00173         GOTO    MAIN_1
+0030   1685           00174         BSF     DISPLAYp, ENA_DISP  ; desliga display
+0031   2???           00175         GOTO    MAIN_1
                       00176 
-                      00177 ;============================================================================
-                      00178 ;
-                      00179 ; TRATAMENTO DA RECEPÇÃO DOS DADOS DO CONTROLE REMOTO
-                      00180 ; PRESUPOE QUE TIMER 2 NÃO É USADO POR MAIS NINGUEM
+0032   2???           00177         GOTO    start           ; ocorreu algum erro, resetar
+                      00178 
+                      00179 
+                      00180 ;============================================================================
                       00181 ;
-                      00182 ;============================================================================
-0020                  00183 IrDA_FALL:
-0020   108B           00184         BCF     INTCON, INTF    ; ZERA O BIT DA INTERRUPÇÃO
-0021   1A92           00185         BTFSC   T2CON, 5        ; TESTA SE É 1:5
-0022   2???           00186         GOTO    IrDA_FALL_SAMPLE_1
-                      00187 
-0023   1912           00188         BTFSC   T2CON, TMR2ON
-0024   2???           00189         GOTO    IrDA_FALL_ABORT
-                      00190 
-0025   1A12           00191         BTFSC   T2CON, 4        ; TESTA SE ESTA NO 1:3
-0026   2???           00192         GOTO    IrDA_FALL_SAMPLE
-                      00193 
-0027                  00194 IrDA_FALL_ABORT
-0027   2???           00195         CALL INIT_IrDA
-0028   0008           00196         RETURN
-                      00197 
-0029                  00198 IrDA_FALL_SAMPLE_1
-0029   1292           00199         BCF     T2CON, 5
-002A                  00200 IrDA_FALL_SAMPLE
-002A   0191           00201         CLRF    TMR2
-002B   1512           00202         BSF     T2CON, TMR2ON
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  5
+                      00182 ; Seção com funções
+                      00183 ;
+                      00184 ;
+                      00185 ;============================================================================
+                      00186 
+                      00187 FUNCTIONS CODE
+                      00188 
+                      00189 ;============================================================================
+                      00190 ;
+                      00191 ;   Delay de 1000 ciclos de clock de instrução
+                      00192 ;
+                      00193 ;     Presupõe que a interrupção de overflow do timer0 está desativada, caso
+                      00194 ;   contrário o comportamento é imprevisível.
+                      00195 ;
+                      00196 ;     O timer utiliza um ajuste para se obter o consumo de 1000 ciclos desde
+                      00197 ;   a instrução de chamada até o retorno na instrução seguinte
+                      00198 ;
+                      00199 ;==============================================================================
+                      00200 
+0000                  00201 DELAYms: ; com preescaler em 1:4 desde o call até o retorno gasta 1000 ciclos
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-002C   0008           00203         RETURN
-                      00204 
-                      00205 ;===========================================================================
-                      00206 ;
-                      00207 ;   ROTINA QUE TRATA DA LEITURA DO BIT DO IrDA NA PORTA
-                      00208 ;   BYTE 0 - DEVICE
-                      00209 ;   BYTE 1 - COMANDO
-                      00210 ;   BYTE 2 - EXTENÇÃO (SÓ EM 20 BITS)
-                      00211 ;
-                      00212 ;   INTERRUPÇÃO DEVE CESSAR DEPOIS DE ALTERAR ESTADO DA MÁQUINA DE ESTADOS
-                      00213 ;===========================================================================
-                      00214 
-002D                  00215 IrDA_SAMPLER:
-                      00216 
-002D   108C           00217         BCF     PIR1, TMR2IF    ; ZERA O BIT DA INTERRUPÇÃO
-002E   1A92           00218         BTFSC   T2CON, 5        ; TESTA SE É 1:5
-002F   2???           00219         GOTO    IrDA_SAMPLER_5  ; 1:5
-0030   1E12           00220         BTFSS   T2CON, 4        ;TESTA DE É 1:3
-0031   2???           00221         GOTO    IrDA_SAMPLER_1
-0032   1D05           00222         BTFSS   IrDAp, IrDAb ; TESTA NÍVEL LÓGICO DA PORTA, DEVE SER ALTO
-0033   2???           00223         GOTO    IrDA_SAMPLER_ABORT
-0034   1212           00224         BCF     T2CON, 4
-0035   2???           00225         GOTO    IrDA_SAMPLER_3
-                      00226 
-0036                  00227 IrDA_SAMPLER_1
-0036   0A??           00228         INCF    IrDA_bits, F
-                      00229 
-0037   1003           00230         BCF     STATUS, C       ; INVERTE BIT VINDO DA LÓGICA
-0038   1D05           00231         BTFSS   IrDAp, IrDAb
-0039   1403           00232         BSF     STATUS, C
-                      00233 
-                      00234         ; COLOCA BIT NO ARRAY
-003A   0C??           00235         RRF     IrDA_DATA, F
-003B   0C??           00236         RRF     IrDA_DATA+1, F
-003C   0C??           00237         RRF     IrDA_DATA+2, F
-                      00238 
-003D                  00239 IrDA_SAMPLER_3
-003D   1692           00240         BSF     T2CON, 5    ; ATIVA POSTSCALER 1:5
-003E   0191           00241         CLRF    TMR2
-003F   0008           00242         RETURN
-                      00243 
+                      00202 
+                      00203         ; AJUSTA PARÂMETROS DO CONTADOR
+                      00204         ;
+                      00205         ; PRESCALER 1:4
+                      00206         ; INCREMENTA NA DESCIDA DO CLOCK
+                      00207         ; USA O CLOCK DE INSTRUÇÃO COMO BATE DE TEMPO
+                      00208         ;
+0000   30C0           00209         MOVLW   b'11000000'
+0001   0501           00210         ANDWF   OPTION_REG, W
+0002   3801           00211         IORLW   b'00000001'
+0003   0081           00212         MOVWF   OPTION_REG
+                      00213 
+                      00214 ;laço do timer
+0004   300A           00215         MOVLW   0X0A                ; AJUSTA CONTADOR PARA GERAR A SAÍDA CORRETA
+0005   0081           00216         MOVWF   TMR0                ; ATUALIZA CONTADOR
+0006   110B           00217         BCF     INTCON, T0IF
+0007   1D0B           00218         BTFSS   INTCON, T0IF
+0008   2???           00219         GOTO $-1
+0009   0008           00220     RETURN
+                      00221 
+                      00222 
+                      00223 ;============================================================================
+                      00224 ;
+                      00225 ;   INICIALIZA ESTRUTURAS PARA RECEPÇÃO DE UM COMANDO DO CONTROLE REMOTO
+                      00226 ;
+                      00227 ;============================================================================
+000A                  00228 INIT_IrDA:
+000A   01??           00229         CLRF    IrDA_bits
+000B   3011           00230         MOVLW   b'00010001'     ; PRESCALER 1:4 POSTSCALER 1:3
+000C   0092           00231         MOVWF   T2CON
+000D   0191           00232         CLRF    TMR2            ; ZERA CONTADOR
+000E   0008           00233         RETURN
+                      00234 
+                      00235 ;============================================================================
+                      00236 ;
+                      00237 ; TRATAMENTO DA RECEPÇÃO DOS DADOS DO CONTROLE REMOTO
+                      00238 ; PRESUPOE QUE TIMER 2 NÃO É USADO POR MAIS NINGUEM
+                      00239 ;
+                      00240 ;============================================================================
+000F                  00241 IrDA_FALL:
+000F   1A92           00242         BTFSC   T2CON, 5        ; TESTA SE É 1:5
+0010   2???           00243         GOTO    IrDA_FALL_SAMPLE_1
                       00244 
-                      00245 ; PRESCALER DE 1:5
-                      00246 ; ATINGIU O LIMITE DE TEMPO DE ESPERA
-                      00247 ; VERIFICA SE A QUANTIDADE DE BITS SE ENQUADRA EM ALGUM PADRÃO
-0040                  00248 IrDA_SAMPLER_5
-                      00249 
-0040   300C           00250         MOVLW   0X0C    ; 12 BITS
-0041   06??           00251         XORWF   IrDA_bits, W
-0042   1903           00252         BTFSC   STATUS, Z
-0043   2???           00253         GOTO    IrDA_COMMAND_12_BITS
+0011   1912           00245         BTFSC   T2CON, TMR2ON
+0012   2???           00246         GOTO    IrDA_FALL_ABORT
+                      00247 
+0013   1A12           00248         BTFSC   T2CON, 4        ; TESTA SE ESTA NO 1:3
+0014   2???           00249         GOTO    IrDA_FALL_SAMPLE
+                      00250 
+0015                  00251 IrDA_FALL_ABORT
+0015   2???           00252         CALL INIT_IrDA
+0016   0008           00253         RETURN
                       00254 
-0044   300F           00255         MOVLW   0X0F    ; 15 BITS
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  6
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0045   06??           00256         XORWF   IrDA_bits, W
-0046   1903           00257         BTFSC   STATUS, Z
-0047   2???           00258         GOTO    IrDA_COMMAND_15_BITS
-                      00259 
-0048   3014           00260         MOVLW   0X14    ; 20 BITS
-0049   06??           00261         XORWF   IrDA_bits, W
-004A   1D03           00262         BTFSS   STATUS, Z
-004B   2???           00263         CALL    IrDA_SAMPLER_ABORT
-                      00264 
-                      00265 ; INTERVALO DE CÓDIGO QUE CORRIGE POSIÇÃO DOS BITS
-                      00266 
-004C   08??           00267         MOVF    IrDA_DATA, W
-004D   00??           00268         MOVWF   w_temp
-004E   08??           00269         MOVF    IrDA_DATA+1, W
-004F   00??           00270         MOVWF   IrDA_DATA
-0050   08??           00271         MOVF    IrDA_DATA+2, W
-0051   00??           00272         MOVWF   IrDA_DATA+1
-0052   08??           00273         MOVF    w_temp, W
-0053   00??           00274         MOVWF   IrDA_DATA+2
-                      00275 
-0054                  00276 IrDA_COMMAND_12_BITS
-0054   30F0           00277         MOVLW   b'11110000'
-0055   05??           00278         ANDWF   IrDA_DATA+1, F
-0056   0C??           00279         RRF     IrDA_DATA, F
-0057   0C??           00280         RRF     IrDA_DATA+1, F
-0058   0C??           00281         RRF     IrDA_DATA, F
-0059   0C??           00282         RRF     IrDA_DATA+1, F
-005A   0C??           00283         RRF     IrDA_DATA, F
-005B   0C??           00284         RRF     IrDA_DATA+1, F
-                      00285 
-005C                  00286 IrDA_COMMAND_15_BITS
-                      00287 
-005C   1003           00288         BCF     STATUS, C
-005D   0C??           00289         RRF     IrDA_DATA+1, F
+0017                  00255 IrDA_FALL_SAMPLE_1
+0017   1292           00256         BCF     T2CON, 5
+0018                  00257 IrDA_FALL_SAMPLE
+0018   01??           00258         CLRF    IrDA_command
+0019   0191           00259         CLRF    TMR2
+001A   1512           00260         BSF     T2CON, TMR2ON
+001B   0008           00261         RETURN
+                      00262 
+                      00263 ;===========================================================================
+                      00264 ;
+                      00265 ;   ROTINA QUE TRATA DA LEITURA DO BIT DO IrDA NA PORTA
+                      00266 ;   BYTE 0 - DEVICE
+                      00267 ;   BYTE 1 - COMANDO
+                      00268 ;   BYTE 2 - EXTENÇÃO (SÓ EM 20 BITS)
+                      00269 ;
+                      00270 ;   INTERRUPÇÃO DEVE CESSAR DEPOIS DE ALTERAR ESTADO DA MÁQUINA DE ESTADOS
+                      00271 ;===========================================================================
+                      00272 
+001C                  00273 IrDA_SAMPLER:
+                      00274 
+001C   1A92           00275         BTFSC   T2CON, 5        ; TESTA SE É 1:5
+001D   2???           00276         GOTO    IrDA_SAMPLER_5  ; 1:5
+001E   1E12           00277         BTFSS   T2CON, 4        ;TESTA DE É 1:3
+001F   2???           00278         GOTO    IrDA_SAMPLER_1
+0020   1D05           00279         BTFSS   IrDAp, IrDAb    ; TESTA NÍVEL LÓGICO DA PORTA, DEVE SER ALTO
+0021   2???           00280         GOTO    IrDA_SAMPLER_ABORT
+0022   1212           00281         BCF     T2CON, 4
+0023   2???           00282         GOTO    IrDA_SAMPLER_3
+                      00283 
+0024                  00284 IrDA_SAMPLER_1
+0024   0A??           00285         INCF    IrDA_bits, F
+                      00286 
+0025   1003           00287         BCF     STATUS, C       ; INVERTE BIT VINDO DA LÓGICA
+0026   1D05           00288         BTFSS   IrDAp, IrDAb
+0027   1403           00289         BSF     STATUS, C
                       00290 
-                      00291 ; FIM DAS CORREÇÕES DE POSIÇÃO
-                      00292 
-                      00293 
-005E   08??           00294         MOVF    IrDA_DATA, W
-005F   3A01           00295         XORLW   DEVICE
-0060   1D03           00296         BTFSS   STATUS, Z           ; testa dispositivo
-0061   2???           00297         GOTO    IrDA_SAMPLER_ABORT
-                      00298 
-                      00299         ; TODO: tratar melhor o descarte do envio triplo
-0062   03??           00300         DECF    IrDA_discard, F
-0063   3003           00301         MOVLW   0x03
-0064   05??           00302         ANDWF   IrDA_discard, F
-0065   1D03           00303         BTFSS   STATUS, Z
-0066   2???           00304         GOTO    IrDA_SAMPLER_ABORT  ; descarta envio triplo do controle
-                      00305 
-0067   03??           00306         DECF    IrDA_discard, F
-                      00307 
-                      00308         ; LOCALIZAR AÇÃO NA TABELA
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  7
+                      00291         ; COLOCA BIT NO ARRAY
+0028   0C??           00292         RRF     IrDA_DATA, F
+0029   0C??           00293         RRF     IrDA_DATA+1, F
+002A   0C??           00294         RRF     IrDA_DATA+2, F
+                      00295 
+002B                  00296 IrDA_SAMPLER_3
+002B   1692           00297         BSF     T2CON, 5        ; ATIVA POSTSCALER 1:5
+002C   0191           00298         CLRF    TMR2
+002D   0008           00299         RETURN
+                      00300 
+                      00301 
+                      00302 ; PRESCALER DE 1:5
+                      00303 ; ATINGIU O LIMITE DE TEMPO DE ESPERA
+                      00304 ; VERIFICA SE A QUANTIDADE DE BITS SE ENQUADRA EM ALGUM PADRÃO
+002E                  00305 IrDA_SAMPLER_5
+002E   300C           00306         MOVLW   0X0C            ; 12 BITS
+002F   06??           00307         XORWF   IrDA_bits, W
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0068   08??           00309         MOVF    IrDA_DATA+1, W
-0069   1800           00310         BTFSC   SMCON, 0    ; testa qual tabela deve ser consultada auto/manual
-006A   2???           00311         CALL    REMOTE_CONTROL_COMMANDS_AUTO
-006B   1C00           00312         BTFSS   SMCON, 0    ; só para não gerar mais goto
-006C   2???           00313         CALL    REMOTE_CONTROL_COMMANDS_MANUAL
-                      00314 
-006D   00??           00315         MOVWF   IrDA_command    ; deve ser tratado pelo main que fica em loop
-                      00316 
-                      00317         ; só para testar a recepção do controle, remover na versão final
-                      00318         ;BCF     STATUS, RP0
-                      00319         ;MOVLW   b'00100000'
-                      00320         ;XORWF   PORTA, F
-                      00321 
-006E                  00322 IrDA_SAMPLER_ABORT
-006E   2???           00323         CALL    INIT_IrDA       ; INICIALIZA ESTRUTURAS
-006F   0008           00324         RETURN
-                      00325 
-                      00326 ;=============================================================================
-                      00327 ;
-                      00328 ;   GERENCIA SEQUENCIA PARA LEITURA E GRAVAÇÃO NA EEPROM
-                      00329 ;
-                      00330 ;=============================================================================
+0030   1903           00308         BTFSC   STATUS, Z
+0031   2???           00309         GOTO    IrDA_COMMAND_12_BITS
+                      00310 
+0032   300F           00311         MOVLW   0X0F            ; 15 BITS
+0033   06??           00312         XORWF   IrDA_bits, W
+0034   1903           00313         BTFSC   STATUS, Z
+0035   2???           00314         GOTO    IrDA_COMMAND_15_BITS
+                      00315 
+0036   3014           00316         MOVLW   0X14            ; 20 BITS
+0037   06??           00317         XORWF   IrDA_bits, W
+0038   1D03           00318         BTFSS   STATUS, Z
+0039   2???           00319         CALL    IrDA_SAMPLER_ABORT
+                      00320 
+                      00321 ; INTERVALO DE CÓDIGO QUE CORRIGE POSIÇÃO DOS BITS
+                      00322 
+003A   08??           00323         MOVF    IrDA_DATA, W
+003B   00??           00324         MOVWF   w_temp
+003C   08??           00325         MOVF    IrDA_DATA+1, W
+003D   00??           00326         MOVWF   IrDA_DATA
+003E   08??           00327         MOVF    IrDA_DATA+2, W
+003F   00??           00328         MOVWF   IrDA_DATA+1
+0040   08??           00329         MOVF    w_temp, W
+0041   00??           00330         MOVWF   IrDA_DATA+2
                       00331 
-0070                  00332 RECORD_EEPROM:
-0070   138B           00333         BCF     INTCON, GIE     ; DESATIVA INTERRUPÇÃO GLOBAL
-0071   1B8B           00334         BTFSC   INTCON, GIE     ; TESTA SE INTERRUPÇÃO FOI DESABILITADA
-0072   2???           00335         GOTO    $-2             ; REPETE SE AINDA NÃO ESTÁ DESATIVADO
-0073   1683           00336         BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
-0074   119C           00337         BCF     EECON1, WRERR   ; REMOVE MARCAÇÃO DE ERRO DE GRAVAÇÃO
-0075   151C           00338         BSF     EECON1, WREN    ; HABILITA GRAVAÇÃO
-                      00339         ;MOVF    pos_value, W   ; COLOCA O DADO NO REGISTRADOR DE DADOS
-0076   009A           00340         MOVWF   EEDAT
-0077   08??           00341         MOVF    record_addr, W     ; COLOCA A POSIÇÃO NO REGISTRADOR DE POSIÇÃO
-0078   009B           00342         MOVWF   EEADR
-                      00343         ; SEQUENCIA DE INICIALIZAÇÃO EXIGIDA PARA A GRAVAÇÃO NA EEPROM
-0079   3055           00344         MOVLW   0X55
-007A   009D           00345         MOVWF   EECON2
-007B   30AA           00346         MOVLW   0XAA
-007C   009D           00347         MOVWF   EECON2
-007D   149C           00348         BSF     EECON1, WR      ; ATIVA GRAVAÇÃO
-                      00349         ; FIM DA SEQUENCIA EXIGIDA
-007E   189C           00350         BTFSC   EECON1, WR      ; TESTA SE GRAVAÇÃO FOI CONCLUIDA
-007F   2???           00351         GOTO $-1
-0080   1283           00352         BCF     STATUS, RP0
-0081   178B           00353         BSF     INTCON, GIE     ; HABILITA INTERRUPÇÃO GLOBAL
-0082   0008           00354         RETURN
+0042                  00332 IrDA_COMMAND_12_BITS
+0042   30F0           00333         MOVLW   b'11110000'
+0043   05??           00334         ANDWF   IrDA_DATA+1, F
+0044   1003           00335         BCF     STATUS, C
+0045   0C??           00336         RRF     IrDA_DATA, F
+0046   0C??           00337         RRF     IrDA_DATA+1, F
+0047   0C??           00338         RRF     IrDA_DATA, F
+0048   0C??           00339         RRF     IrDA_DATA+1, F
+0049   0C??           00340         RRF     IrDA_DATA, F
+004A   0C??           00341         RRF     IrDA_DATA+1, F
+                      00342 
+004B                  00343 IrDA_COMMAND_15_BITS
+                      00344 
+004B   1003           00345         BCF     STATUS, C
+004C   0C??           00346         RRF     IrDA_DATA+1, F
+                      00347 
+                      00348 ; FIM DAS CORREÇÕES DE POSIÇÃO
+                      00349 
+                      00350 
+004D   08??           00351         MOVF    IrDA_DATA, W
+004E   3A01           00352         XORLW   DEVICE
+004F   1D03           00353         BTFSS   STATUS, Z           ; testa dispositivo
+0050   2???           00354         GOTO    IrDA_SAMPLER_ABORT
                       00355 
-0083                  00356 READ_EEPROM:
-0083   138B           00357         BCF     INTCON, GIE
-0084   1683           00358         BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
-0085   3000           00359         MOVLW   ADDR_EE_POS
-0086   009B           00360         MOVWF   EEADR
-0087   141C           00361         BSF     EECON1, RD
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  8
+                      00356         ; TODO: tratar melhor o descarte do envio triplo
+0051   03??           00357         DECF    IrDA_discard, F
+0052   3003           00358         MOVLW   0x03
+0053   05??           00359         ANDWF   IrDA_discard, F
+0054   1D03           00360         BTFSS   STATUS, Z
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0088   181C           00362         BTFSC   EECON1, RD
-0089   2???           00363         GOTO    $-1
-008A   081A           00364         MOVF    EEDAT, W
-008B   00??           00365         MOVWF   pos_value
-008C   1283           00366         BCF     STATUS, RP0
-008D   178B           00367         BSF     INTCON, GIE
-008E   0008           00368         RETURN
-                      00369 
-                      00370 ;=============================================================================
-                      00371 ;
-                      00372 ; Rotina que implementa a conversão A/D do sensor de luminosidade e permanece
-                      00373 ; até que se atinja o nível de luminosidade desejado
-                      00374 ;
-                      00375 ;=============================================================================
-008F                  00376 AUTO_REFRESH:
-008F   141F           00377         BSF     ADCON0, ADON        ; LIGA CONVERSOR A/D
-0090   149F           00378         BSF     ADCON0, GO_NOT_DONE ; INICIA CONVERSÃO
+0055   2???           00361         GOTO    IrDA_SAMPLER_ABORT  ; descarta envio triplo do controle
+                      00362 
+0056   03??           00363         DECF    IrDA_discard, F
+                      00364 
+                      00365         ; LOCALIZAR AÇÃO NA TABELA
+0057   08??           00366         MOVF    IrDA_DATA+1, W
+0058   1800           00367         BTFSC   SMCON, MODEAUTO     ; testa qual tabela deve ser consultada auto/manual
+0059   2???           00368         CALL    REMOTE_CONTROL_COMMANDS_AUTO
+005A   1C00           00369         BTFSS   SMCON, MODEAUTO
+005B   2???           00370         CALL    REMOTE_CONTROL_COMMANDS_MANUAL
+                      00371 
+005C   39FF           00372         ANDLW   0xFF
+005D   1D03           00373         BTFSS   STATUS, Z
+005E   2???           00374         CALL    COMMANDS
+                      00375 
+005F                  00376 IrDA_SAMPLER_ABORT
+005F   2???           00377         CALL    INIT_IrDA       ; INICIALIZA ESTRUTURAS
+0060   0008           00378         RETURN
                       00379 
-0091                  00380 AD_DONE
-0091   189F           00381         BTFSC   ADCON0, GO_NOT_DONE ; TESTA SE TERMINOU
-0092   2???           00382         GOTO    AD_DONE
-0093   081E           00383         MOVF    ADRESH, W           ; ARMAZENA O RESULTADO DA CONVERSÃO
-                      00384 
-0094   02??           00385         SUBWF   pos_value, W        ; COMPARA OS VALORES
-0095   1903           00386         BTFSC   STATUS, Z           ; SE SÃO IGUAIS NÃO FAZ NADA
-0096   2???           00387         GOTO    REFRESH_END
-0097   149F           00388         BSF     ADCON0, GO_NOT_DONE ; INICIA NOVA CONVERSÃO
-                      00389 
-0098   1803           00390         BTFSC   STATUS, C
-0099   2???           00391         goto    AD_FORWARD
-009A   2???           00392         CALL    MOTOR_REVERSE            ; sentido anti-horário
-009B                  00393 AD_END
-009B   2???           00394         CALL    DELAYms
-009C   2???           00395         CALL    DELAYms
-009D   2???           00396         CALL    DELAYms
-009E   2???           00397         CALL    DELAYms
-009F   2???           00398         CALL    DELAYms
-00A0   2???           00399         GOTO    AD_DONE
-                      00400 
-                      00401 
-00A1                  00402 AD_FORWARD
-00A1   2???           00403         CALL    MOTOR_DIRECT            ; sentido horário
-00A2   2???           00404         GOTO    AD_END
-                      00405 
-00A3                  00406 REFRESH_END
-00A3   101F           00407         BCF     ADCON0, ADON    ; DESLIGA CONVERSOR
-00A4   2???           00408         CALL    MOTOR_OFF       ; REMOVE CONSUMO DE CORRENTE
-00A5   0008           00409         RETURN
-                      00410 
-                      00411 ;=============================================================================
-                      00412 ;
-                      00413 ;   GERENCIA O MOTOR DE PASSO CONECTADO AS SAÍDAS RC2~RC5
-                      00414 
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE  9
+                      00380 ;=============================================================================
+                      00381 ;
+                      00382 ;   GERENCIA SEQUENCIA PARA LEITURA E GRAVAÇÃO NA EEPROM
+                      00383 ;
+                      00384 ;=============================================================================
+                      00385 
+0061                  00386 RECORD_EEPROM:
+0061   138B           00387         BCF     INTCON, GIE     ; DESATIVA INTERRUPÇÃO GLOBAL
+0062   1B8B           00388         BTFSC   INTCON, GIE     ; TESTA SE INTERRUPÇÃO FOI DESABILITADA
+0063   2???           00389         GOTO    $-2             ; REPETE SE AINDA NÃO ESTÁ DESATIVADO
+0064   1683           00390         BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
+0065   119C           00391         BCF     EECON1, WRERR   ; REMOVE MARCAÇÃO DE ERRO DE GRAVAÇÃO
+0066   151C           00392         BSF     EECON1, WREN    ; HABILITA GRAVAÇÃO
+                      00393         ;MOVF    pos_value, W   ; COLOCA O DADO NO REGISTRADOR DE DADOS
+0067   009A           00394         MOVWF   EEDAT
+0068   08??           00395         MOVF    record_addr, W     ; COLOCA A POSIÇÃO NO REGISTRADOR DE POSIÇÃO
+0069   009B           00396         MOVWF   EEADR
+                      00397         ; SEQUENCIA DE INICIALIZAÇÃO EXIGIDA PARA A GRAVAÇÃO NA EEPROM
+006A   3055           00398         MOVLW   0X55
+006B   009D           00399         MOVWF   EECON2
+006C   30AA           00400         MOVLW   0XAA
+006D   009D           00401         MOVWF   EECON2
+006E   149C           00402         BSF     EECON1, WR      ; ATIVA GRAVAÇÃO
+                      00403         ; FIM DA SEQUENCIA EXIGIDA
+006F   189C           00404         BTFSC   EECON1, WR      ; TESTA SE GRAVAÇÃO FOI CONCLUIDA
+0070   2???           00405         GOTO $-1
+0071   1283           00406         BCF     STATUS, RP0
+0072   178B           00407         BSF     INTCON, GIE     ; HABILITA INTERRUPÇÃO GLOBAL
+0073   0008           00408         RETURN
+                      00409 
+0074                  00410 READ_EEPROM:
+0074   138B           00411         BCF     INTCON, GIE
+0075   1683           00412         BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
+0076   3000           00413         MOVLW   ADDR_EE_POS
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE  9
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-00A6                  00415 MOTOR_OFF:
-00A6   01??           00416         CLRF    w_temp
-00A7   2???           00417         GOTO    MOTOR_DO
-00A8                  00418 MOTOR_DIRECT:
-00A8   0A??           00419         INCF    motor_pos, F
-00A9   2???           00420         GOTO    $+2
-00AA                  00421 MOTOR_REVERSE:
-00AA   03??           00422         DECF    motor_pos, F
-00AB   08??           00423         MOVF    motor_pos, W
-00AC   2???           00424         CALL    BIT_PATTERN
-00AD   00??           00425         MOVWF   w_temp
-                      00426 
-00AE                  00427 MOTOR_DO
-00AE   30C3           00428         MOVLW   b'11000011'
-00AF   0507           00429         ANDWF   PORTC, W
-00B0   04??           00430         IORWF   w_temp, W
-00B1   0087           00431         MOVWF   PORTC
-00B2   0008           00432         RETURN
+0077   009B           00414         MOVWF   EEADR
+0078   141C           00415         BSF     EECON1, RD
+0079   181C           00416         BTFSC   EECON1, RD
+007A   2???           00417         GOTO    $-1
+007B   081A           00418         MOVF    EEDAT, W
+007C   00??           00419         MOVWF   pos_value
+007D   1283           00420         BCF     STATUS, RP0
+007E   178B           00421         BSF     INTCON, GIE
+007F   0008           00422         RETURN
+                      00423 
+                      00424 ;=============================================================================
+                      00425 ;
+                      00426 ; Rotina que implementa a conversão A/D do sensor de luminosidade e permanece
+                      00427 ; até que se atinja o nível de luminosidade desejado
+                      00428 ;
+                      00429 ;=============================================================================
+0080                  00430 AUTO_REFRESH:
+0080   141F           00431         BSF     ADCON0, ADON        ; LIGA CONVERSOR A/D
+0081   149F           00432         BSF     ADCON0, GO_NOT_DONE ; INICIA CONVERSÃO
                       00433 
-                      00434 
-                      00435 
-                      00436 ;=============================================================================
-                      00437 ;
-                      00438 ;   RETORNA A POSIÇÃO ATUAL DO MOTOR NA TABELA
-                      00439 ;
-                      00440 ;   NÃO É UTIL NO MOMENTO POIS A POSIÇÃO DE PARADA É COM SAÍDA EM ZERO
-                      00441 ;=============================================================================
-00B3                  00442 MOTOR_STATE:
-00B3   1E87           00443     BTFSS   PORTC, RC5
-00B4   2???           00444     GOTO    MOTOR_STATE_ARM1
-00B5   1907           00445     BTFSC   PORTC, RC2
-00B6   3407           00446     RETLW   0X07
-00B7   1E07           00447     BTFSS   PORTC, RC4
-00B8   3406           00448     RETLW   0X06
-00B9   3405           00449     RETLW   0X05
-00BA                  00450 MOTOR_STATE_ARM1
-00BA   1D87           00451     BTFSS   PORTC, RC3
-00BB   2???           00452     GOTO    MOTOR_STATE_ARM2
-00BC   1907           00453     BTFSC   PORTC, RC2
-00BD   3401           00454     RETLW   0X01
-00BE   1E07           00455     BTFSS   PORTC, RC4
-00BF   3402           00456     RETLW   0X02
-00C0   3403           00457     RETLW   0X03
-00C1                  00458 MOTOR_STATE_ARM2
-00C1   1E07           00459     BTFSS   PORTC, RC4
-00C2   3400           00460     RETLW   0X00
-00C3   3404           00461     RETLW   0X04
-                      00462 
-                      00463 
-                      00464 ;-----------------------------------------------------------------------------
-                      00465 ;
-                      00466 ;   Conversor binário -> BCD
-                      00467 ;
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 10
+0082                  00434 AD_DONE
+0082   1C00           00435         BTFSS   SMCON, 0
+0083   2???           00436         GOTO    REFRESH_END
+0084   189F           00437         BTFSC   ADCON0, GO_NOT_DONE ; TESTA SE TERMINOU
+0085   2???           00438         GOTO    AD_DONE
+0086   081E           00439         MOVF    ADRESH, W           ; ARMAZENA O RESULTADO DA CONVERSÃO
+                      00440 
+0087   02??           00441         SUBWF   pos_value, W        ; COMPARA OS VALORES
+0088   1903           00442         BTFSC   STATUS, Z           ; SE SÃO IGUAIS NÃO FAZ NADA
+0089   2???           00443         GOTO    REFRESH_END
+008A   149F           00444         BSF     ADCON0, GO_NOT_DONE ; INICIA NOVA CONVERSÃO
+                      00445 
+008B   1803           00446         BTFSC   STATUS, C
+008C   2???           00447         goto    AD_FORWARD
+008D   2???           00448         CALL    MOTOR_REVERSE       ; sentido anti-horário
+008E                  00449 AD_END
+008E   2???           00450         CALL    DELAYms
+008F   2???           00451         CALL    DELAYms
+0090   2???           00452         CALL    DELAYms
+0091   2???           00453         CALL    DELAYms
+0092   2???           00454         CALL    DELAYms
+0093   2???           00455         GOTO    AD_DONE
+                      00456 
+                      00457 
+0094                  00458 AD_FORWARD
+0094   2???           00459         CALL    MOTOR_DIRECT        ; sentido horário
+0095   2???           00460         GOTO    AD_END
+                      00461 
+0096                  00462 REFRESH_END
+0096   101F           00463         BCF     ADCON0, ADON    ; DESLIGA CONVERSOR
+0097   2???           00464         CALL    MOTOR_OFF       ; REMOVE CONSUMO DE CORRENTE
+0098   0008           00465         RETURN
+                      00466 
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00468 ;-----------------------------------------------------------------------------
-                      00469 
-00C4                  00470 BCD_CONVERT:
-00C4   00??           00471     MOVWF VALUE_BIN
-                      00472         ;inicializa laco (8 vezes)
-00C5   3080           00473         MOVLW 0x80
-00C6   00??           00474         MOVWF LOOP_BCD_COUNTER
-00C7   01??           00475     CLRF B1                     ;b1; - primeiro byte com dois nibbles de bcd
-00C8   01??           00476     CLRF B2                     ;b2; - segundo byte, com um unico nibble de bcd
-                      00477 
-00C9   2???           00478         GOTO KEEP_SHIFTING
-00CA                  00479 LOOP_SHIFT
-00CA   1980           00480         BTFSC B1, 3                 ;Testa se primeiro nibble eh maior ou igual a oito
-00CB   2???           00481         GOTO ADD_B1_0
-00CC   1D00           00482         BTFSS B1, 2                 ;Testa se eh maior ou igual a quatro
-00CD   2???           00483         GOTO TEST_B1_1                          ;nibble ok, continuar
-00CE   1880           00484         BTFSC B1, 1
-00CF   2???           00485         GOTO ADD_B1_0                           ;tem que somar
-00D0   1C00           00486         BTFSS B1, 0
-00D1   2???           00487         GOTO TEST_B1_1
-                      00488 
-00D2                  00489 ADD_B1_0                                                ;primeiro nibble eh maior que 5
-00D2   3003           00490         MOVLW 0x03
-00D3   07??           00491         ADDWF B1, f                                     ;adiciona 3 ao nibble
-                      00492 
-00D4                  00493 TEST_B1_1
-00D4   1B80           00494         BTFSC B1, 7                 ;Testa se primeiro nibble eh maior ou igual a oito
-00D5   2???           00495         GOTO ADD_B1_1
-00D6   1F00           00496         BTFSS B1, 6                 ;Testa se eh maior ou igual a quatro
-00D7   2???           00497         GOTO TEST_B2                            ;nibble ok, continuar
-00D8   1A80           00498         BTFSC B1, 5
-00D9   2???           00499         GOTO ADD_B1_1                           ;tem que somar
-00DA   1E00           00500         BTFSS B1, 4
-00DB   2???           00501         GOTO TEST_B2
-                      00502 
-00DC                  00503 ADD_B1_1                                                ;segundo nibble eh maior que 5
-00DC   3030           00504         MOVLW 0x30
-00DD   07??           00505         ADDWF B1, f                                     ;adiciona 3 ao nibble
-                      00506 
-00DE                  00507 TEST_B2
-00DE   1980           00508         BTFSC B2, 3                 ;Testa se primeiro nibble eh maior ou igual a oito
-00DF   2???           00509         GOTO ADD_B2
-00E0   1D00           00510         BTFSS B2, 2                 ;Testa se eh maior ou igual a quatro
-00E1   2???           00511         GOTO KEEP_SHIFTING                      ;nibble ok, continuar
-00E2   1880           00512         BTFSC B2, 1
-00E3   2???           00513         GOTO ADD_B2                                     ;tem que somar
-00E4   1C00           00514         BTFSS B2, 0
-00E5   2???           00515         GOTO KEEP_SHIFTING
-                      00516 
-00E6                  00517 ADD_B2
-00E6   3003           00518         MOVLW 0x03
-00E7   07??           00519         ADDWF B2, f                 ;adiciona 3 ao nibble
-                      00520 
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 11
+                      00467 ;=============================================================================
+                      00468 ;
+                      00469 ;   GERENCIA O MOTOR DE PASSO CONECTADO AS SAÍDAS RC2~RC5
+                      00470 
+0099                  00471 MOTOR_OFF:
+0099   01??           00472         CLRF    w_temp
+009A   2???           00473         GOTO    MOTOR_DO
+009B                  00474 MOTOR_DIRECT:
+009B   0A??           00475         INCF    motor_pos, F
+009C   2???           00476         GOTO    $+2
+009D                  00477 MOTOR_REVERSE:
+009D   03??           00478         DECF    motor_pos, F
+009E   08??           00479         MOVF    motor_pos, W
+009F   2???           00480         CALL    BIT_PATTERN
+00A0   00??           00481         MOVWF   w_temp
+                      00482 
+00A1                  00483 MOTOR_DO
+00A1   30C3           00484         MOVLW   b'11000011'
+00A2   0507           00485         ANDWF   PORTC, W
+00A3   04??           00486         IORWF   w_temp, W
+00A4   0087           00487         MOVWF   PORTC
+00A5   0008           00488         RETURN
+                      00489 
+                      00490 ;-----------------------------------------------------------------------------
+                      00491 ;
+                      00492 ;   Conversor binário -> BCD
+                      00493 ;
+                      00494 ;-----------------------------------------------------------------------------
+                      00495 
+00A6                  00496 BCD_CONVERT:
+00A6   00??           00497     MOVWF VALUE_BIN
+                      00498         ;inicializa laco (8 vezes)
+00A7   3080           00499         MOVLW 0x80
+00A8   00??           00500         MOVWF LOOP_BCD_COUNTER
+00A9   01??           00501     CLRF B1                     ;b1; - primeiro byte com dois nibbles de bcd
+00AA   01??           00502     CLRF B2                     ;b2; - segundo byte, com um unico nibble de bcd
+                      00503 
+00AB   2???           00504         GOTO KEEP_SHIFTING
+00AC                  00505 LOOP_SHIFT
+00AC   1980           00506         BTFSC B1, 3                 ;Testa se primeiro nibble eh maior ou igual a oito
+00AD   2???           00507         GOTO ADD_B1_0
+00AE   1D00           00508         BTFSS B1, 2                 ;Testa se eh maior ou igual a quatro
+00AF   2???           00509         GOTO TEST_B1_1                          ;nibble ok, continuar
+00B0   1880           00510         BTFSC B1, 1
+00B1   2???           00511         GOTO ADD_B1_0                           ;tem que somar
+00B2   1C00           00512         BTFSS B1, 0
+00B3   2???           00513         GOTO TEST_B1_1
+                      00514 
+00B4                  00515 ADD_B1_0                                                ;primeiro nibble eh maior que 5
+00B4   3003           00516         MOVLW 0x03
+00B5   07??           00517         ADDWF B1, f                                     ;adiciona 3 ao nibble
+                      00518 
+00B6                  00519 TEST_B1_1
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-00E8                  00521 KEEP_SHIFTING
+00B6   1B80           00520         BTFSC B1, 7                 ;Testa se primeiro nibble eh maior ou igual a oito
+00B7   2???           00521         GOTO ADD_B1_1
+00B8   1F00           00522         BTFSS B1, 6                 ;Testa se eh maior ou igual a quatro
+00B9   2???           00523         GOTO TEST_B2                            ;nibble ok, continuar
+00BA   1A80           00524         BTFSC B1, 5
+00BB   2???           00525         GOTO ADD_B1_1                           ;tem que somar
+00BC   1E00           00526         BTFSS B1, 4
+00BD   2???           00527         GOTO TEST_B2
+                      00528 
+00BE                  00529 ADD_B1_1                                                ;segundo nibble eh maior que 5
+00BE   3030           00530         MOVLW 0x30
+00BF   07??           00531         ADDWF B1, f                                     ;adiciona 3 ao nibble
+                      00532 
+00C0                  00533 TEST_B2
+00C0   1980           00534         BTFSC B2, 3                 ;Testa se primeiro nibble eh maior ou igual a oito
+00C1   2???           00535         GOTO ADD_B2
+00C2   1D00           00536         BTFSS B2, 2                 ;Testa se eh maior ou igual a quatro
+00C3   2???           00537         GOTO KEEP_SHIFTING                      ;nibble ok, continuar
+00C4   1880           00538         BTFSC B2, 1
+00C5   2???           00539         GOTO ADD_B2                                     ;tem que somar
+00C6   1C00           00540         BTFSS B2, 0
+00C7   2???           00541         GOTO KEEP_SHIFTING
+                      00542 
+00C8                  00543 ADD_B2
+00C8   3003           00544         MOVLW 0x03
+00C9   07??           00545         ADDWF B2, f                 ;adiciona 3 ao nibble
+                      00546 
+00CA                  00547 KEEP_SHIFTING
 Message[305]: Using default destination of 1 (file).
-00E8   0D??           00522         RLF VALUE_BIN
+00CA   0D??           00548         RLF VALUE_BIN
 Message[305]: Using default destination of 1 (file).
-00E9   0D??           00523         RLF B1                      ;joga bit de carry no primeiro bit do registrador, shifta o registra
+00CB   0D??           00549         RLF B1                      ;joga bit de carry no primeiro bit do registrador, shifta o registra
                             dor
 Message[305]: Using default destination of 1 (file).
-00EA   0D??           00524         RLF B2                      ;de novo, passa ultimo bit adiante
-                      00525 
-00EB   0C??           00526         RRF LOOP_BCD_COUNTER,f
-00EC   08??           00527         MOVF LOOP_BCD_COUNTER,f         ;testa se valor do registrador eh zero
-00ED   1D03           00528         BTFSS STATUS,Z              ;testa se chegamos ao fim da execucao
-00EE   2???           00529         GOTO LOOP_SHIFT
-00EF                  00530 final_da_execucao               ;realizar tratamentos finais
-00EF   0008           00531         RETURN
-                      00532 
-00F0                  00533 SEND_DISPLAY:
-00F0   1685           00534     BSF     DISPLAYp, ENA_DISP
-00F1   0008           00535     RETURN
-                      00536 ;------------------------------------------------------------------------------
-                      00537 ;
-                      00538 ; Funções que devem ser chamadas alterando o pcl, não devem ser chamadas com
-                      00539 ; CALL, ver limite de endereço ao gerar o binário para se necessário ajustar o
-                      00540 ; PCLATCH, por hora o pc latch deve ser 1
-                      00541 ;
-                      00542 ; Todas as funções devem terminar com:
-                      00543 ;       goto    RETORNO_DE_COMANDO
-                      00544 ;
-                      00545 ;------------------------------------------------------------------------------
-                      00546     org     0x0300
-0300   2???           00547         GOTO    RETORNO_DE_COMANDO ; garante que se for apontado para algum lugar
-                      00548                                    ; depois das funções ao dar o overflow volta
-                      00549                                    ; para o main, também server quando não há
-                      00550                                    ; comando associado
-0301                  00551 cmd_digit
-0301                  00552 cmd_apply
-0301                  00553 cmd_upper
-0301                  00554 cmd_lower
-0301   2???           00555         GOTO    RETORNO_DE_COMANDO
-                      00556 
-0302                  00557 cmd_display:
-                      00558         ; converter valor especificado para bcd
-0302   2???           00559         CALL    SEND_DISPLAY
-0303   2???           00560         goto    RETORNO_DE_COMANDO
-                      00561 
-                      00562 
-                      00563 
-                      00564 ; para o movimento ficar suave manter o tempo total desta execução em 4ms
-0304                  00565 cmd_open:
-0304   01??           00566         clrf    counter
-                      00567 
-0305   2???           00568 st1     call    MOTOR_REVERSE
-                      00569 
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 12
+00CC   0D??           00550         RLF B2                      ;de novo, passa ultimo bit adiante
+                      00551 
+00CD   0C??           00552         RRF LOOP_BCD_COUNTER,f
+00CE   08??           00553         MOVF LOOP_BCD_COUNTER,f         ;testa se valor do registrador eh zero
+00CF   1D03           00554         BTFSS STATUS,Z              ;testa se chegamos ao fim da execucao
+00D0   2???           00555         GOTO LOOP_SHIFT
+00D1                  00556 final_da_execucao               ;realizar tratamentos finais
+00D1   0008           00557         RETURN
+                      00558 
+                      00559 ;=============================================================================
+                      00560 ;
+                      00561 ; Envia os valores bcd em B1 e B2 para o display
+                      00562 ;
+                      00563 ; a sensibilidade do clock do receptor do display é a borda de subida
+                      00564 ; para habilitar a saída manter enable em 0 para atualizar o display enviar pulso
+                      00565 ; de clock na linha de enable.
+                      00566 ;
+                      00567 ; o shift é de 16 bits
+                      00568 ;
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 12
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0306   2???           00570         call    DELAYms
-0307   2???           00571         call    DELAYms
-0308   0A??           00572         incf    counter, F
-0309   3002           00573         movlw   0x02
-030A   06??           00574         xorwf   counter, w
-030B   1D03           00575         btfss   STATUS, Z
-                      00576 
-030C   2???           00577         goto    st1
-                      00578 
-030D   2???           00579         call    MOTOR_OFF
-030E   2???           00580         goto    RETORNO_DE_COMANDO
-                      00581 
-                      00582 ; para o movimento ficar suave manter o tempo total desta execução em 4ms
-030F                  00583 cmd_close:
-030F   01??           00584         clrf    counter
-                      00585 
-0310   2???           00586 st2     call    MOTOR_DIRECT
-                      00587 
-0311   2???           00588         call    DELAYms
-0312   2???           00589         call    DELAYms
-0313   0A??           00590         incf    counter, F
-0314   3002           00591         movlw   0x02
-0315   06??           00592         xorwf   counter, w
-0316   1D03           00593         btfss   STATUS, Z
-                      00594 
-0317   2???           00595         goto    st2
-                      00596 
-0318   2???           00597         call    MOTOR_OFF
-0319   2???           00598         goto    RETORNO_DE_COMANDO
-                      00599 
-031A                  00600 cmd_auto:
-031A   1400           00601         BSF     SMCON, MODEAUTO        ; coloca em modo automático
-031B   2???           00602         CALL    AUTO_REFRESH
-031C   1418           00603         BSF     WDTCON, SWDTEN  ; ATIVA O WATCH-DOG TIMER
-031D   2???           00604         goto    RETORNO_DE_COMANDO
-                      00605 
-031E                  00606 cmd_manual:
-031E   1000           00607         BCF     SMCON, MODEAUTO
-031F   2???           00608         goto    RETORNO_DE_COMANDO
-                      00609 
-0320                  00610 cmd_show_now:
-0320   141F           00611         BSF     ADCON0, ADON        ; LIGA CONVERSOR A/D
-0321   149F           00612         BSF     ADCON0, GO_NOT_DONE ; INICIA CONVERSÃO
-0322   189F           00613         BTFSC   ADCON0, GO_NOT_DONE ; TESTA SE TERMINOU
-0323   2???           00614         GOTO    $-1
-0324   081E           00615         MOVF    ADRESH, W           ; ARMAZENA O RESULTADO DA CONVERSÃO
-0325   00??           00616         MOVWF   B1
-0326   01??           00617         CLRF    B2
-0327   2???           00618         CALL    SEND_DISPLAY
-0328   2???           00619         goto    RETORNO_DE_COMANDO
-                      00620 
-                      00621 
-                      00622 ;=============================================================================
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 13
+                      00569 ;=============================================================================
+00D2                  00570 SEND_DISPLAY:
+00D2   1500           00571     BSF     SMCON, 2
+00D3   0E??           00572     SWAPF   B1, F
+                      00573 
+00D4                  00574 START_SEND
+00D4   08??           00575     MOVF    B1, W
+00D5   2???           00576     CALL    SEVEN_SEG_CODE_LOOKUP
+00D6   00??           00577     MOVWF   w_disp
+00D7   3008           00578     MOVLW   0X08
+00D8   00??           00579     MOVWF   count_disp
+00D9                  00580 NEXT_BIT
+00D9   0C??           00581     RRF     w_disp, F
+                      00582 
+                      00583     ; DEFINE BIT DE DADOS
+00DA   1C03           00584     BTFSS   STATUS, C
+00DB   1007           00585     BCF     PORTC, 0
+00DC   1803           00586     BTFSC   STATUS, C
+00DD   1407           00587     BSF     PORTC, 0
+                      00588 
+                      00589     ; APLICA TRANSIÇÃO
+00DE   1087           00590     BCF     PORTC, 1
+00DF   1487           00591     BSF     PORTC, 1
+00E0   1087           00592     BCF     PORTC, 1
+                      00593 
+00E1   03??           00594     DECF    count_disp, F
+00E2   1D03           00595     BTFSS   STATUS, Z
+00E3   2???           00596     GOTO    NEXT_BIT
+                      00597 
+00E4   0E??           00598     SWAPF   B1, F
+00E5   1D00           00599     BTFSS   SMCON, 2
+00E6   2???           00600     GOTO    END_SEND
+00E7   1100           00601     BCF     SMCON, 2
+00E8   2???           00602     GOTO    START_SEND
+                      00603 
+                      00604 
+00E9                  00605 END_SEND
+                      00606     ; envia pulso de clock para o display atualizar
+00E9   0E??           00607     SWAPF   B1, F
+00EA   1285           00608     BCF     DISPLAYp, ENA_DISP
+00EB   1685           00609     BSF     DISPLAYp, ENA_DISP
+00EC   1285           00610     BCF     DISPLAYp, ENA_DISP
+00ED   0008           00611     RETURN
+                      00612 
+                      00613 ;=============================================================================
+                      00614 ;
+                      00615 ;   padrão de ativação das bobinas do motor de passo para meio passo
+                      00616 ;
+                      00617 ;=============================================================================
+                      00618     org     0x0200  ; AJUSTA INICIO DAS TABELAS, 255 POSIÇÕES
+0200                  00619 BIT_PATTERN:
+0200   018A           00620     CLRF    PCLATH
+0201   148A           00621     BSF     PCLATH, 1   ; ACERTA DESLOCAMENTO SOMADO AO PCL
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 13
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00623 ;
-                      00624 ;   padrão de ativação das bobinas do motor de passo para meio passo
-                      00625 ;
-                      00626 ;=============================================================================
-                      00627     org     0x0200  ; AJUSTA INICIO DAS TABELAS, 255 POSIÇÕES
-0200                  00628 BIT_PATTERN:
-0200   018A           00629     CLRF    PCLATH
-0201   148A           00630     BSF     PCLATH, 1   ; ACERTA DESLOCAMENTO SOMADO AO PCL
-0202   3907           00631     ANDLW   0X07        ; remove possíveis saltos para fora da tabela
-0203   0782           00632     ADDWF   PCL, F      ; move o PC para a posição desejada
-0204   3404           00633     RETLW b'00000100'   ; A
-0205   340C           00634     RETLW b'00001100'   ; A~B
-0206   3408           00635     RETLW b'00001000'   ; ~B
-0207   3418           00636     RETLW b'00011000'   ; ~A~B
-0208   3410           00637     RETLW b'00010000'   ; ~A
-0209   3430           00638     RETLW b'00110000'   ; ~AB
-020A   3420           00639     RETLW b'00100000'   ; B
-020B   3424           00640     RETLW b'00100100'   ; AB
-                      00641 
-                      00642 ;============================================================================
-                      00643 ;
-                      00644 ;   CONTROLE REMOTO SONY RMT-V297C
+0202   3907           00622     ANDLW   0X07        ; remove possíveis saltos para fora da tabela
+0203   0782           00623     ADDWF   PCL, F      ; move o PC para a posição desejada
+0204   3404           00624     RETLW b'00000100'   ; A
+0205   340C           00625     RETLW b'00001100'   ; A~B
+0206   3408           00626     RETLW b'00001000'   ; ~B
+0207   3418           00627     RETLW b'00011000'   ; ~A~B
+0208   3410           00628     RETLW b'00010000'   ; ~A
+0209   3430           00629     RETLW b'00110000'   ; ~AB
+020A   3420           00630     RETLW b'00100000'   ; B
+020B   3424           00631     RETLW b'00100100'   ; AB
+                      00632 
+                      00633 ;============================================================================
+                      00634 ;
+                      00635 ;   CONTROLE REMOTO SONY RMT-V297C
+                      00636 ;
+                      00637 ;   CÓDIGO DE DISPOSITIVO
+                      00638 ;   TV
+                      00639 ;   SIRC12  00001
+                      00640 ;
+                      00641 ;   VCR
+                      00642 ;   SIRC12  01011
+                      00643 ;   SIRC15  10111010
+                      00644 ;
                       00645 ;
-                      00646 ;   CÓDIGO DE DISPOSITIVO
-                      00647 ;   TV
-                      00648 ;   SIRC12  00001
-                      00649 ;
-                      00650 ;   VCR
-                      00651 ;   SIRC12  01011
-                      00652 ;   SIRC15  10111010
-                      00653 ;
-                      00654 ;
-                      00655 ;   KEYMAP:
-                      00656 ;
-                      00657 ;   1                           0x00    VCR/TV
-                      00658 ;   2                           0x01    VCR/TV
-                      00659 ;   3                           0x02    VCR/TV
-                      00660 ;   4                           0x03    VCR/TV
-                      00661 ;   5                           0x04    VCR/TV
-                      00662 ;   6                           0x05    VCR/TV
-                      00663 ;   7                           0x06    VCR/TV
-                      00664 ;   8                           0x07    VCR/TV
-                      00665 ;   9                           0x08    VCR/TV
-                      00666 ;   0                           0x09    VCR/TV
-                      00667 ;   ENTER                       0x0B    VCR/TV
-                      00668 ;
-                      00669 ;   CH+                         0x10    VCR/TV
-                      00670 ;   CH-                         0x11    VCR/TV
-                      00671 ;   VOL+                        0x12    TV
-                      00672 ;   VOL-                        0x13    TV
-                      00673 ;   X2                          0x14    VCR
-                      00674 ;   POWER                       0x15    VCR/TV
-                      00675 ;   EJECT                       0x16    VCR
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 14
+                      00646 ;   KEYMAP:
+                      00647 ;
+                      00648 ;   1                           0x00    VCR/TV
+                      00649 ;   2                           0x01    VCR/TV
+                      00650 ;   3                           0x02    VCR/TV
+                      00651 ;   4                           0x03    VCR/TV
+                      00652 ;   5                           0x04    VCR/TV
+                      00653 ;   6                           0x05    VCR/TV
+                      00654 ;   7                           0x06    VCR/TV
+                      00655 ;   8                           0x07    VCR/TV
+                      00656 ;   9                           0x08    VCR/TV
+                      00657 ;   0                           0x09    VCR/TV
+                      00658 ;   ENTER                       0x0B    VCR/TV
+                      00659 ;
+                      00660 ;   CH+                         0x10    VCR/TV
+                      00661 ;   CH-                         0x11    VCR/TV
+                      00662 ;   VOL+                        0x12    TV
+                      00663 ;   VOL-                        0x13    TV
+                      00664 ;   X2                          0x14    VCR
+                      00665 ;   POWER                       0x15    VCR/TV
+                      00666 ;   EJECT                       0x16    VCR
+                      00667 ;   AUDIO MONITOR       0x17    VCR/TV
+                      00668 ;   REC                         0x1D    VCR
+                      00669 ;   SLOW                        0x23    VCR
+                      00670 ;   TV/VIDEO            0x25    TV
+                      00671 ;   TV/VIDEO            0x2A    VCR
+                      00672 ;   DISPLAY                     0x3A    TV
+                      00673 ;   MENU                        0x4D    VCR
+                      00674 ;   INPUT SELECT        0x4F    VCR
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 14
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00676 ;   AUDIO MONITOR       0x17    VCR/TV
-                      00677 ;   REC                         0x1D    VCR
-                      00678 ;   SLOW                        0x23    VCR
-                      00679 ;   TV/VIDEO            0x25    TV
-                      00680 ;   TV/VIDEO            0x2A    VCR
-                      00681 ;   DISPLAY                     0x3A    TV
-                      00682 ;   MENU                        0x4D    VCR
-                      00683 ;   INPUT SELECT        0x4F    VCR
-                      00684 ;   INDEX RIGHT         0x56    VCR
-                      00685 ;   INDEX LEFT          0x57    VCR
-                      00686 ;   SP/EP                       0x58    VCR
-                      00687 ;   DISPLAY                     0x5A    VCR
-                      00688 ;   EASY TIMER          0x60    VCR
-                      00689 ;   CLEAR                       0x63    VCR
-                      00690 ;
-                      00691 ;   UP                          0x0E    VCR SIRC15
-                      00692 ;   DOWN                        0x0F    VCR SIRC15
-                      00693 ;   LEFT                        0x10    VCR SIRC15
-                      00694 ;   RIGHT                       0x11    VCR SIRC15
-                      00695 ;   PLAY/OK                     0x18    VCR SIRC15
-                      00696 ;
-                      00697 ;
-                      00698 ;============================================================================
-                      00699 
-020C                  00700 REMOTE_CONTROL_COMMANDS_AUTO:
-020C   018A           00701     CLRF    PCLATH
-020D   148A           00702     BSF     PCLATH, 1   ; ACERTA O DESLOCAMENTO SOMADO AO PCL
-020E   393F           00703     ANDLW   0X3F        ; remove possíveis saltos para fora da tabela
-020F   0782           00704     ADDWF   PCL, F      ; move o PC para a posição desejada
-0210   34??           00705     RETLW   cmd_digit        ;   1                              0x00    VCR/TV
-0211   34??           00706     RETLW   cmd_digit        ;   2                              0x01    VCR/TV
-0212   34??           00707     RETLW   cmd_digit        ;   3                              0x02    VCR/TV
-0213   34??           00708     RETLW   cmd_digit        ;   4                              0x03    VCR/TV
-0214   34??           00709     RETLW   cmd_digit        ;   5                              0x04    VCR/TV
-0215   34??           00710     RETLW   cmd_digit        ;   6                              0x05    VCR/TV
-0216   34??           00711     RETLW   cmd_digit        ;   7                              0x06    VCR/TV
-0217   34??           00712     RETLW   cmd_digit        ;   8                              0x07    VCR/TV
-0218   34??           00713     RETLW   cmd_digit        ;   9                              0x08    VCR/TV
-0219   34??           00714     RETLW   cmd_digit        ;   0                              0x09    VCR/TV
-021A   3400           00715     RETLW   0X00        ;                   0x0A
-021B   34??           00716     RETLW   cmd_apply        ;   ENTER                  0x0B    VCR/TV
-021C   3400           00717     RETLW   0X00        ;                   0x0C
-021D   3400           00718     RETLW   0X00        ;                   0x0D
-021E   3400           00719     RETLW   0X00        ;                   0x0E
-021F   3400           00720     RETLW   0X00        ;                   0x0F
-0220   3400           00721     RETLW   0X00        ;   CH+                         0x10    VCR/TV
-0221   3400           00722     RETLW   0X00        ;   CH-                         0x11    VCR/TV
-0222   34??           00723     RETLW   cmd_upper        ;   VOL+                   0x12    TV
-0223   34??           00724     RETLW   cmd_lower        ;   VOL-                   0x13    TV
-0224   3400           00725     RETLW   0X00        ;                   0x14
-0225   34??           00726     RETLW   cmd_manual        ;   POWER                 0x15    VCR/TV
-0226   3400           00727     RETLW   0X00        ;                   0x16
-0227   3400           00728     RETLW   0X00        ;   AUDIO MONITOR       0x17    VCR/TV
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 15
+                      00675 ;   INDEX RIGHT         0x56    VCR
+                      00676 ;   INDEX LEFT          0x57    VCR
+                      00677 ;   SP/EP                       0x58    VCR
+                      00678 ;   DISPLAY                     0x5A    VCR
+                      00679 ;   EASY TIMER          0x60    VCR
+                      00680 ;   CLEAR                       0x63    VCR
+                      00681 ;
+                      00682 ;   UP                          0x0E    VCR SIRC15
+                      00683 ;   DOWN                        0x0F    VCR SIRC15
+                      00684 ;   LEFT                        0x10    VCR SIRC15
+                      00685 ;   RIGHT                       0x11    VCR SIRC15
+                      00686 ;   PLAY/OK                     0x18    VCR SIRC15
+                      00687 ;
+                      00688 ;
+                      00689 ;============================================================================
+                      00690 
+020C                  00691 REMOTE_CONTROL_COMMANDS_AUTO:
+020C   018A           00692     CLRF    PCLATH
+020D   148A           00693     BSF     PCLATH, 1   ; ACERTA O DESLOCAMENTO SOMADO AO PCL
+020E   393F           00694     ANDLW   0X3F        ; remove possíveis saltos para fora da tabela
+020F   0782           00695     ADDWF   PCL, F      ; move o PC para a posição desejada
+0210   34??           00696     RETLW   cmd_digit_1   ;   1                         0x00    VCR/TV
+0211   34??           00697     RETLW   cmd_digit_2   ;   2                         0x01    VCR/TV
+0212   34??           00698     RETLW   cmd_digit_3   ;   3                         0x02    VCR/TV
+0213   34??           00699     RETLW   cmd_digit_4   ;   4                         0x03    VCR/TV
+0214   34??           00700     RETLW   cmd_digit_5   ;   5                         0x04    VCR/TV
+0215   34??           00701     RETLW   cmd_digit_6   ;   6                         0x05    VCR/TV
+0216   34??           00702     RETLW   cmd_digit_7   ;   7                         0x06    VCR/TV
+0217   34??           00703     RETLW   cmd_digit_8   ;   8                         0x07    VCR/TV
+0218   34??           00704     RETLW   cmd_digit_9   ;   9                         0x08    VCR/TV
+0219   34??           00705     RETLW   cmd_digit_0   ;   0                         0x09    VCR/TV
+021A   3400           00706     RETLW   0X00        ;                   0x0A
+021B   34??           00707     RETLW   cmd_apply   ;   ENTER                       0x0B    VCR/TV
+021C   3400           00708     RETLW   0X00        ;                   0x0C
+021D   3400           00709     RETLW   0X00        ;                   0x0D
+021E   3400           00710     RETLW   0X00        ;                   0x0E
+021F   3400           00711     RETLW   0X00        ;                   0x0F
+0220   34??           00712     RETLW   cmd_upper_unit        ;   CH+                               0x10    VCR/TV
+0221   34??           00713     RETLW   cmd_lower_unit        ;   CH-                               0x11    VCR/TV
+0222   34??           00714     RETLW   cmd_upper   ;   VOL+                        0x12    TV
+0223   34??           00715     RETLW   cmd_lower   ;   VOL-                        0x13    TV
+0224   3400           00716     RETLW   0X00        ;                   0x14
+0225   34??           00717     RETLW   cmd_manual  ;   POWER                       0x15    VCR/TV
+0226   3400           00718     RETLW   0X00        ;                   0x16
+0227   3400           00719     RETLW   0X00        ;   AUDIO MONITOR       0x17    VCR/TV
+0228   3400           00720     RETLW   0X00        ;                   0x18
+0229   3400           00721     RETLW   0X00        ;                   0x19
+022A   3400           00722     RETLW   0X00        ;                   0x1A
+022B   3400           00723     RETLW   0X00        ;                   0x1B
+022C   3400           00724     RETLW   0X00        ;                   0x1C
+022D   3400           00725     RETLW   0X00        ;                   0x1D
+022E   3400           00726     RETLW   0X00        ;                   0x1E
+022F   3400           00727     RETLW   0X00        ;                   0x1F
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 15
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0228   3400           00729     RETLW   0X00        ;                   0x18
-0229   3400           00730     RETLW   0X00        ;                   0x19
-022A   3400           00731     RETLW   0X00        ;                   0x1A
-022B   3400           00732     RETLW   0X00        ;                   0x1B
-022C   3400           00733     RETLW   0X00        ;                   0x1C
-022D   3400           00734     RETLW   0X00        ;                   0x1D
-022E   3400           00735     RETLW   0X00        ;                   0x1E
-022F   3400           00736     RETLW   0X00        ;                   0x1F
-0230   3400           00737     RETLW   0X00        ;                   0x20
-0231   3400           00738     RETLW   0X00        ;                   0x21
-0232   3400           00739     RETLW   0X00        ;                   0x22
-0233   3400           00740     RETLW   0X00        ;                   0x23
-0234   3400           00741     RETLW   0X00        ;                   0x24
-0235   3400           00742     RETLW   0X00        ;   TV/VIDEO            0x25    TV
-0236   3400           00743     RETLW   0X00        ;                   0x26
-0237   3400           00744     RETLW   0X00        ;                   0x27
-0238   3400           00745     RETLW   0X00        ;                   0x28
-0239   3400           00746     RETLW   0X00        ;                   0x29
-023A   3400           00747     RETLW   0X00        ;                   0x2A
-023B   3400           00748     RETLW   0X00        ;                   0x2B
-023C   3400           00749     RETLW   0X00        ;                   0x2C
-023D   3400           00750     RETLW   0X00        ;                   0x2D
-023E   3400           00751     RETLW   0X00        ;                   0x2E
-023F   3400           00752     RETLW   0X00        ;                   0x2F
-0240   3400           00753     RETLW   0X00        ;                   0x30
-0241   3400           00754     RETLW   0X00        ;                   0x31
-0242   3400           00755     RETLW   0X00        ;                   0x32
-0243   3400           00756     RETLW   0X00        ;                   0x33
-0244   3400           00757     RETLW   0X00        ;                   0x34
-0245   3400           00758     RETLW   0X00        ;                   0x35
-0246   3400           00759     RETLW   0X00        ;                   0x36
-0247   3400           00760     RETLW   0X00        ;                   0x37
-0248   3400           00761     RETLW   0X00        ;                   0x38
-0249   3400           00762     RETLW   0X00        ;                   0x39
-024A   34??           00763     RETLW   cmd_display        ;   DISPLAY                      0x3A    TV
-024B   3400           00764     RETLW   0X00        ;                   0x3B
-024C   3400           00765     RETLW   0X00        ;                   0x3C
-024D   3400           00766     RETLW   0X00        ;                   0x3D
-024E   3400           00767     RETLW   0X00        ;                   0x3E
-024F   3400           00768     RETLW   0X00        ;                   0x3F
-                      00769 
-0250                  00770 REMOTE_CONTROL_COMMANDS_MANUAL:
-0250   018A           00771     CLRF    PCLATH
-0251   148A           00772     BSF     PCLATH, 1       ; ACERTA O DESLOCAMENTO SOMADO AO PCL
-0252   393F           00773     ANDLW   0X3F            ; remove possíveis saltos para fora da tabela
-0253   0782           00774     ADDWF   PCL, F          ; move o PC para a posição desejada
-0254   34??           00775     RETLW   cmd_display            ;   1                                0x00    VCR/TV
-0255   3400           00776     RETLW   0X00            ;   2                               0x01    VCR/TV
-0256   3400           00777     RETLW   0X00            ;   3                               0x02    VCR/TV
-0257   3400           00778     RETLW   0X00            ;   4                               0x03    VCR/TV
-0258   3400           00779     RETLW   0X00            ;   5                               0x04    VCR/TV
-0259   3400           00780     RETLW   0X00            ;   6                               0x05    VCR/TV
-025A   3400           00781     RETLW   0X00            ;   7                               0x06    VCR/TV
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 16
+0230   3400           00728     RETLW   0X00        ;                   0x20
+0231   3400           00729     RETLW   0X00        ;                   0x21
+0232   3400           00730     RETLW   0X00        ;                   0x22
+0233   3400           00731     RETLW   0X00        ;                   0x23
+0234   3400           00732     RETLW   0X00        ;                   0x24
+0235   3400           00733     RETLW   0X00        ;   TV/VIDEO            0x25    TV
+0236   3400           00734     RETLW   0X00        ;                   0x26
+0237   3400           00735     RETLW   0X00        ;                   0x27
+0238   3400           00736     RETLW   0X00        ;                   0x28
+0239   3400           00737     RETLW   0X00        ;                   0x29
+023A   3400           00738     RETLW   0X00        ;                   0x2A
+023B   3400           00739     RETLW   0X00        ;                   0x2B
+023C   3400           00740     RETLW   0X00        ;                   0x2C
+023D   3400           00741     RETLW   0X00        ;                   0x2D
+023E   3400           00742     RETLW   0X00        ;                   0x2E
+023F   3400           00743     RETLW   0X00        ;                   0x2F
+0240   3400           00744     RETLW   0X00        ;                   0x30
+0241   3400           00745     RETLW   0X00        ;                   0x31
+0242   3400           00746     RETLW   0X00        ;                   0x32
+0243   3400           00747     RETLW   0X00        ;                   0x33
+0244   3400           00748     RETLW   0X00        ;                   0x34
+0245   3400           00749     RETLW   0X00        ;                   0x35
+0246   3400           00750     RETLW   0X00        ;                   0x36
+0247   3400           00751     RETLW   0X00        ;                   0x37
+0248   3400           00752     RETLW   0X00        ;                   0x38
+0249   3400           00753     RETLW   0X00        ;                   0x39
+024A   34??           00754     RETLW   cmd_display ;   DISPLAY                     0x3A    TV
+024B   3400           00755     RETLW   0X00        ;                   0x3B
+024C   3400           00756     RETLW   0X00        ;                   0x3C
+024D   3400           00757     RETLW   0X00        ;                   0x3D
+024E   3400           00758     RETLW   0X00        ;                   0x3E
+024F   3400           00759     RETLW   0X00        ;                   0x3F
+                      00760 
+0250                  00761 REMOTE_CONTROL_COMMANDS_MANUAL:
+0250   018A           00762     CLRF    PCLATH
+0251   148A           00763     BSF     PCLATH, 1       ; ACERTA O DESLOCAMENTO SOMADO AO PCL
+0252   393F           00764     ANDLW   0X3F            ; remove possíveis saltos para fora da tabela
+0253   0782           00765     ADDWF   PCL, F          ; move o PC para a posição desejada
+0254   3400           00766     RETLW   0X00            ;   1                               0x00    VCR/TV
+0255   3400           00767     RETLW   0X00            ;   2                               0x01    VCR/TV
+0256   3400           00768     RETLW   0X00            ;   3                               0x02    VCR/TV
+0257   3400           00769     RETLW   0X00            ;   4                               0x03    VCR/TV
+0258   3400           00770     RETLW   0X00            ;   5                               0x04    VCR/TV
+0259   3400           00771     RETLW   0X00            ;   6                               0x05    VCR/TV
+025A   3400           00772     RETLW   0X00            ;   7                               0x06    VCR/TV
+025B   3400           00773     RETLW   0X00            ;   8                               0x07    VCR/TV
+025C   3400           00774     RETLW   0X00            ;   9                               0x08    VCR/TV
+025D   3400           00775     RETLW   0X00            ;   0                               0x09    VCR/TV
+025E   3400           00776     RETLW   0X00            ;                   0x0A
+025F   3400           00777     RETLW   0X00            ;   ENTER                   0x0B    VCR/TV
+0260   3400           00778     RETLW   0X00            ;                   0x0C
+0261   3400           00779     RETLW   0X00            ;                   0x0D
+0262   3400           00780     RETLW   0X00            ;                   0x0E
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 16
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-025B   3400           00782     RETLW   0X00            ;   8                               0x07    VCR/TV
-025C   3400           00783     RETLW   0X00            ;   9                               0x08    VCR/TV
-025D   3400           00784     RETLW   0X00            ;   0                               0x09    VCR/TV
-025E   3400           00785     RETLW   0X00            ;                   0x0A
-025F   3400           00786     RETLW   0X00            ;   ENTER                   0x0B    VCR/TV
-0260   3400           00787     RETLW   0X00            ;                   0x0C
-0261   3400           00788     RETLW   0X00            ;                   0x0D
-0262   3400           00789     RETLW   0X00            ;                   0x0E
-0263   3400           00790     RETLW   0X00            ;                   0x0F
-0264   3400           00791     RETLW   0X00            ;   CH+                             0x10    VCR/TV
-0265   3400           00792     RETLW   0X00            ;   CH-                             0x11    VCR/TV
-0266   34??           00793     RETLW   cmd_open        ;   VOL+                    0x12    TV
-0267   34??           00794     RETLW   cmd_close       ;   VOL-                    0x13    TV
-0268   3400           00795     RETLW   0X00            ;                   0x14
-0269   34??           00796     RETLW   cmd_auto        ;   POWER                   0x15    VCR/TV
-026A   3400           00797     RETLW   0X00            ;                   0x16
-026B   3400           00798     RETLW   0X00            ;   AUDIO MONITOR   0x17    VCR/TV
-026C   3400           00799     RETLW   0X00            ;                   0x18
-026D   3400           00800     RETLW   0X00            ;                   0x19
-026E   3400           00801     RETLW   0X00            ;                   0x1A
-026F   3400           00802     RETLW   0X00            ;                   0x1B
-0270   3400           00803     RETLW   0X00            ;                   0x1C
-0271   3400           00804     RETLW   0X00            ;                   0x1D
-0272   3400           00805     RETLW   0X00            ;                   0x1E
-0273   3400           00806     RETLW   0X00            ;                   0x1F
-0274   3400           00807     RETLW   0X00            ;                   0x20
-0275   3400           00808     RETLW   0X00            ;                   0x21
-0276   3400           00809     RETLW   0X00            ;                   0x22
-0277   3400           00810     RETLW   0X00            ;                   0x23
-0278   3400           00811     RETLW   0X00            ;                   0x24
-0279   3400           00812     RETLW   0X00            ;   TV/VIDEO                0x25    TV
-027A   3400           00813     RETLW   0X00            ;                   0x26
-027B   3400           00814     RETLW   0X00            ;                   0x27
-027C   3400           00815     RETLW   0X00            ;                   0x28
-027D   3400           00816     RETLW   0X00            ;                   0x29
-027E   3400           00817     RETLW   0X00            ;                   0x2A
-027F   3400           00818     RETLW   0X00            ;                   0x2B
-0280   3400           00819     RETLW   0X00            ;                   0x2C
-0281   3400           00820     RETLW   0X00            ;                   0x2D
-0282   3400           00821     RETLW   0X00            ;                   0x2E
-0283   3400           00822     RETLW   0X00            ;                   0x2F
-0284   3400           00823     RETLW   0X00            ;                   0x30
-0285   3400           00824     RETLW   0X00            ;                   0x31
-0286   3400           00825     RETLW   0X00            ;                   0x32
-0287   3400           00826     RETLW   0X00            ;                   0x33
-0288   3400           00827     RETLW   0X00            ;                   0x34
-0289   3400           00828     RETLW   0X00            ;                   0x35
-028A   3400           00829     RETLW   0X00            ;                   0x36
-028B   3400           00830     RETLW   0X00            ;                   0x37
-028C   3400           00831     RETLW   0X00            ;                   0x38
-028D   3400           00832     RETLW   0X00            ;                   0x39
-028E   34??           00833     RETLW   cmd_show_now    ;   DISPLAY                 0x3A    TV
-028F   3400           00834     RETLW   0X00            ;                   0x3B
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 17
+0263   3400           00781     RETLW   0X00            ;                   0x0F
+0264   3400           00782     RETLW   0X00            ;   CH+                             0x10    VCR/TV
+0265   3400           00783     RETLW   0X00            ;   CH-                             0x11    VCR/TV
+0266   34??           00784     RETLW   cmd_open        ;   VOL+                    0x12    TV
+0267   34??           00785     RETLW   cmd_close       ;   VOL-                    0x13    TV
+0268   3400           00786     RETLW   0X00            ;                   0x14
+0269   34??           00787     RETLW   cmd_auto        ;   POWER                   0x15    VCR/TV
+026A   3400           00788     RETLW   0X00            ;                   0x16
+026B   3400           00789     RETLW   0X00            ;   AUDIO MONITOR   0x17    VCR/TV
+026C   3400           00790     RETLW   0X00            ;                   0x18
+026D   3400           00791     RETLW   0X00            ;                   0x19
+026E   3400           00792     RETLW   0X00            ;                   0x1A
+026F   3400           00793     RETLW   0X00            ;                   0x1B
+0270   3400           00794     RETLW   0X00            ;                   0x1C
+0271   3400           00795     RETLW   0X00            ;                   0x1D
+0272   3400           00796     RETLW   0X00            ;                   0x1E
+0273   3400           00797     RETLW   0X00            ;                   0x1F
+0274   3400           00798     RETLW   0X00            ;                   0x20
+0275   3400           00799     RETLW   0X00            ;                   0x21
+0276   3400           00800     RETLW   0X00            ;                   0x22
+0277   3400           00801     RETLW   0X00            ;                   0x23
+0278   3400           00802     RETLW   0X00            ;                   0x24
+0279   3400           00803     RETLW   0X00            ;   TV/VIDEO                0x25    TV
+027A   3400           00804     RETLW   0X00            ;                   0x26
+027B   3400           00805     RETLW   0X00            ;                   0x27
+027C   3400           00806     RETLW   0X00            ;                   0x28
+027D   3400           00807     RETLW   0X00            ;                   0x29
+027E   3400           00808     RETLW   0X00            ;                   0x2A
+027F   3400           00809     RETLW   0X00            ;                   0x2B
+0280   3400           00810     RETLW   0X00            ;                   0x2C
+0281   3400           00811     RETLW   0X00            ;                   0x2D
+0282   3400           00812     RETLW   0X00            ;                   0x2E
+0283   3400           00813     RETLW   0X00            ;                   0x2F
+0284   3400           00814     RETLW   0X00            ;                   0x30
+0285   3400           00815     RETLW   0X00            ;                   0x31
+0286   3400           00816     RETLW   0X00            ;                   0x32
+0287   3400           00817     RETLW   0X00            ;                   0x33
+0288   3400           00818     RETLW   0X00            ;                   0x34
+0289   3400           00819     RETLW   0X00            ;                   0x35
+028A   3400           00820     RETLW   0X00            ;                   0x36
+028B   3400           00821     RETLW   0X00            ;                   0x37
+028C   3400           00822     RETLW   0X00            ;                   0x38
+028D   3400           00823     RETLW   0X00            ;                   0x39
+028E   34??           00824     RETLW   cmd_show_now    ;   DISPLAY                 0x3A    TV
+028F   3400           00825     RETLW   0X00            ;                   0x3B
+0290   3400           00826     RETLW   0X00            ;                   0x3C
+0291   3400           00827     RETLW   0X00            ;                   0x3D
+0292   3400           00828     RETLW   0X00            ;                   0x3E
+0293   3400           00829     RETLW   0X00            ;                   0x3F
+                      00830 
+                      00831 
+                      00832 
+                      00833 ;TABELA PARA O DISPLAY DE SETE SEGMENTOS
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 17
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0290   3400           00835     RETLW   0X00            ;                   0x3C
-0291   3400           00836     RETLW   0X00            ;                   0x3D
-0292   3400           00837     RETLW   0X00            ;                   0x3E
-0293   3400           00838     RETLW   0X00            ;                   0x3F
-                      00839 
-                      00840 
-                      00841 
-                      00842 ;TABELA PARA O DISPLAY DE SETE SEGMENTOS
-                      00843 ;
-                      00844 ; Lógica negada
-                      00845 ;
-                      00846 ;       a
-                      00847 ;    f     b
-                      00848 ;       g
-                      00849 ;    e     c
-                      00850 ;       d
-                      00851 ;
-                      00852 ;   byte = abcdefg(dot)
-                      00853 
-0294                  00854 SEVEN_SEG_CODE_LOOKUP:
-0294   018A           00855     CLRF    PCLATH
-0295   148A           00856     BSF PCLATH, 1
-0296   0782           00857     ADDWF PCL, F
-0297   3403           00858     RETLW b'00000011'           ;0
-0298   349F           00859     RETLW b'10011111'           ;1
-0299   3425           00860     RETLW b'00100101'           ;2
-029A   340D           00861     RETLW b'00001101'           ;3
-029B   3499           00862     RETLW b'10011001'           ;4
-029C   3449           00863     RETLW b'01001001'           ;5
-029D   3441           00864     RETLW b'01000001'           ;6
-029E   341F           00865     RETLW b'00011111'           ;7
-029F   3401           00866     RETLW b'00000001'           ;8
-02A0   3409           00867     RETLW b'00001001'           ;9
-02A1   3405           00868     RETLW b'00000101'           ;a
-02A2   34C1           00869     RETLW b'11000001'           ;b
-02A3   34E5           00870     RETLW b'11100101'           ;c
-02A4   3485           00871     RETLW b'10000101'           ;d
-02A5   3421           00872     RETLW b'00100001'           ;e
-02A6   3471           00873     RETLW b'01110001'           ;f
-                      00874 
-                      00875 ; tabela com valores a serem somados no conversor bcd -> binário
-02A7                  00876 BCD_TO_BINARY_DOZENS:
-02A7   00??           00877     MOVWF   w_temp
-02A8   3C09           00878     SUBLW   0X09
-02A9   1803           00879     BTFSC   STATUS, C
-02AA   34FF           00880     RETLW   0XFF
-02AB   148A           00881     BSF     PCLATH, 1
-02AC   0782           00882     ADDWF   PCL, F
-02AD   3400           00883     RETLW   0x00        ; 0
-02AE   340A           00884     RETLW   0x0A        ; 10
-02AF   3414           00885     RETLW   0x14        ; 20
-02B0   341E           00886     RETLW   0x1E        ; 30
-02B1   3428           00887     RETLW   0x28        ; 40
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 18
+                      00834 ;
+                      00835 ; Lógica negada
+                      00836 ;
+                      00837 ;       a
+                      00838 ;    f     b
+                      00839 ;       g
+                      00840 ;    e     c
+                      00841 ;       d
+                      00842 ;
+                      00843 ;   byte = (dot)abcdefg
+                      00844 
+0294                  00845 SEVEN_SEG_CODE_LOOKUP:
+0294   018A           00846     CLRF    PCLATH
+0295   148A           00847     BSF PCLATH, 1
+0296   390F           00848     ANDLW   0x0F
+0297   0782           00849     ADDWF PCL, F
+0298   3481           00850     RETLW b'10000001'           ;0
+0299   34CF           00851     RETLW b'11001111'           ;1
+029A   3492           00852     RETLW b'10010010'           ;2
+029B   3486           00853     RETLW b'10000110'           ;3
+029C   34CC           00854     RETLW b'11001100'           ;4
+029D   34A4           00855     RETLW b'10100100'           ;5
+029E   34A0           00856     RETLW b'10100000'           ;6
+029F   348F           00857     RETLW b'10001111'           ;7
+02A0   3480           00858     RETLW b'10000000'           ;8
+02A1   3484           00859     RETLW b'10000100'           ;9
+02A2   3488           00860     RETLW b'10001000'           ;a
+02A3   34E0           00861     RETLW b'11100000'           ;b
+02A4   34B1           00862     RETLW b'10110001'           ;c
+02A5   34C2           00863     RETLW b'11000010'           ;d
+02A6   34B0           00864     RETLW b'10110000'           ;e
+02A7   34B8           00865     RETLW b'10111000'           ;f
+                      00866 
+                      00867 ; tabela com valores a serem somados no conversor bcd -> binário
+02A8                  00868 BCD_TO_BINARY_DOZENS:
+02A8   00??           00869     MOVWF   w_temp
+02A9   3C09           00870     SUBLW   0X09
+02AA   1803           00871     BTFSC   STATUS, C
+02AB   34FF           00872     RETLW   0XFF
+02AC   148A           00873     BSF     PCLATH, 1
+02AD   0782           00874     ADDWF   PCL, F
+02AE   3400           00875     RETLW   0x00        ; 0
+02AF   340A           00876     RETLW   0x0A        ; 10
+02B0   3414           00877     RETLW   0x14        ; 20
+02B1   341E           00878     RETLW   0x1E        ; 30
+02B2   3428           00879     RETLW   0x28        ; 40
+02B3   3432           00880     RETLW   0x32        ; 50
+02B4   343C           00881     RETLW   0x3C        ; 60
+02B5   3446           00882     RETLW   0x46        ; 70
+02B6   3450           00883     RETLW   0x50        ; 80
+02B7   345A           00884     RETLW   0x5A        ; 90
+                      00885 
+                      00886 ;------------------------------------------------------------------------------
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 18
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-02B2   3432           00888     RETLW   0x32        ; 50
-02B3   343C           00889     RETLW   0x3C        ; 60
-02B4   3446           00890     RETLW   0x46        ; 70
-02B5   3450           00891     RETLW   0x50        ; 80
-02B6   345A           00892     RETLW   0x5A        ; 90
-                      00893 
-                      00894 
-                      00895 MAIN    CODE
-                      00896 
-0000                  00897 start   ; PRÉ-SET DO AMBIENTE DE EXECUÇÃO
-0000   018B           00898         CLRF    INTCON
-                      00899 
-0001   1683           00900         BSF     STATUS, RP0     ; APONTA PARA BLOCO 1
-0002   3001           00901         MOVLW   b'00000001'
-0003   0081           00902         MOVWF   OPTION_REG      ; DEFINE PRESCALER DO TIMER 0, COLOCA INT/RA2 EM FALLING EDGE
-0004   301F           00903         MOVLW   0X1F            ; b'00011111'
-0005   0085           00904         MOVWF   TRISA           ; DEFINE I/O DA PORTA A
-0006   0187           00905         CLRF    TRISC           ; DEFINE PORTA C COMO SAÍDAS
-0007   3008           00906         MOVLW   b'00001000'
-0008   0091           00907         MOVWF   ANSEL           ; DEFINE AS PORTAS QUE SÃO ANALÓGICAS
-0009   0196           00908         CLRF    IOCA
-000A   3007           00909         MOVLW   0X07
-000B   0095           00910         MOVWF   WPUA            ; DEFINE AS PORTAS QUE POSSUEM PULL-UP
-                      00911         ;MOVLW   0X30
-000C   3010           00912         MOVLW   0X10
-000D   009F           00913         MOVWF   ADCON1          ; DEFINE OSCILADOR DEDICADO PARA O CONVERSOR A/D
-000E   3002           00914         MOVLW   b'00000010'
-000F   008C           00915         MOVWF   PIE1            ; HABILITA INTERRUPÇÃO POR TIMER2
-0010   30E1           00916         MOVLW   0XE1
-0011   0092           00917         MOVWF   PR2             ; COLOCA 160 NO COMPARADOR DO TIMER 2 (IrDA) 2560 us EM 4MHz
-                      00918 
-                      00919 
-0012   1283           00920         BCF     STATUS, RP0     ; APONTA PARA O BANCO 0
-0013   0185           00921         CLRF    PORTA           ; INIT PORTA
-0014   0187           00922         CLRF    PORTC
-0015   3007           00923         MOVLW   0X07
-0016   0099           00924         MOVWF   CMCON0          ; DESLIGA OS COMPARADORES
-0017   300C           00925         MOVLW   0X0C
-0018   009F           00926         MOVWF   ADCON0          ; HABILITA ENTRADA ANALÓGICA 3 E AJUSTA PARA SAIDA JUSTIFICADA A ESQUERD
-                            A
-0019   3016           00927         MOVLW   0X16
-001A   0098           00928         MOVWF   WDTCON          ; AJUSTA PRESCALER DO WATCH-DOG PARA 1:65536 ~ 2 segundos
-001B   018C           00929         CLRF    PIR1            ; ZERA FLAGS DE INTERRUPÇÕES DOS PERIFÉRICOS
-                      00930 
-001C   3050           00931         MOVLW   b'01010000'
-001D   008B           00932         MOVWF   INTCON          ; HABILITA INT/RA2, PERIFÉRICOS
-                      00933 
-                      00934         ; Inicalização da RAM
-                      00935         ;BTFSC   EECON1, WRERR   ; TESTA SE HOUVE ERRO DE GRAVAÇÃO DURANTE RESET
-                      00936         ;CALL    RECORD_POSITION
-                      00937         ;CALL    READ_POSITION
-                      00938 
-                      00939         ; Teste da interação
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 19
+                      00887 ;
+                      00888 ; Funções que devem ser chamadas alterando o pcl, não devem ser chamadas com
+                      00889 ; CALL, ver limite de endereço ao gerar o binário para se necessário ajustar o
+                      00890 ; PCLATCH, por hora o pc latch deve ser 1
+                      00891 ;
+                      00892 ;
+                      00893 ;------------------------------------------------------------------------------
+                      00894     org     0x0300
+0300                  00895 COMMANDS:
+0300   00??           00896         MOVWF   w_temp
+0301   3003           00897         MOVLW   0X03
+0302   008A           00898         MOVWF   PCLATH
+0303   08??           00899         MOVF    w_temp, W
+0304   0082           00900         MOVWF   PCL
+                      00901 
+0305                  00902 cmd_upper_unit
+0305   0A??           00903         INCF    pos_value, W
+0306   1980           00904         BTFSC   SMCON, 3
+0307   0A??           00905         INCF    B1_temp, W
+0308   2???           00906         goto    cmd_unit
+0309                  00907 cmd_lower_unit
+0309   03??           00908         DECF    pos_value, W
+030A   1980           00909         BTFSC   SMCON, 3
+030B   03??           00910         DECF    B1_temp, W
+030C                  00911 cmd_unit
+030C   390F           00912         ANDLW   0x0F
+030D   00??           00913         MOVWF   w_temp
+                      00914 
+030E   30F0           00915         MOVLW   0xF0
+                      00916 
+030F   1D80           00917         BTFSS   SMCON, 3
+0310   05??           00918         ANDWF   pos_value, W
+0311   1980           00919         BTFSC   SMCON, 3
+0312   05??           00920         ANDWF   B1_temp, W
+                      00921 
+0313   04??           00922         IORWF   w_temp, W
+0314   00??           00923         MOVWF   B1_temp
+0315   00??           00924         MOVWF   B1
+0316   2???           00925         CALL    SEND_DISPLAY
+0317   1580           00926         BSF     SMCON, 3
+0318   0008           00927         RETURN
+                      00928 
+0319                  00929 cmd_digit_0
+0319   3000           00930         MOVLW 0x00
+031A   2???           00931         goto cmd_digit
+031B                  00932 cmd_digit_1
+031B   3010           00933         MOVLW 0x10
+031C   2???           00934         goto cmd_digit
+031D                  00935 cmd_digit_2
+031D   3020           00936         MOVLW 0x20
+031E   2???           00937         goto cmd_digit
+031F                  00938 cmd_digit_3
+031F   3030           00939         MOVLW 0x30
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 19
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-001E   3070           00940         MOVLW   0X70
-001F   00??           00941         MOVWF   pos_value
-                      00942         ;CALL    RECORD_POSITION
-                      00943 
-                      00944 ;        CLRF    record_addr
-0020   178B           00945         BSF     INTCON, GIE
-                      00946 
-0021   3020           00947         MOVLW   b'00100000'
-0022   0685           00948         XORWF   PORTA, F
-0023   3020           00949         MOVLW   0X20
-0024   0084           00950         MOVWF   FSR
-0025   3003           00951         MOVLW   0x03
-                      00952 
-0026   01??           00953         CLRF    SMCON
-0027   01??           00954         CLRF    IrDA_command
-0028   2???           00955         call    INIT_IrDA
-                      00956 
-0029                  00957 RETORNO_DE_COMANDO
+0320   2???           00940         goto cmd_digit
+0321                  00941 cmd_digit_4
+0321   3040           00942         MOVLW 0x40
+0322   2???           00943         goto cmd_digit
+0323                  00944 cmd_digit_5
+0323   3050           00945         MOVLW 0x50
+0324   2???           00946         goto cmd_digit
+0325                  00947 cmd_digit_6
+0325   3060           00948         MOVLW 0x60
+0326   2???           00949         goto cmd_digit
+0327                  00950 cmd_digit_7
+0327   3070           00951         MOVLW 0x70
+0328   2???           00952         goto cmd_digit
+0329                  00953 cmd_digit_8
+0329   3080           00954         MOVLW 0x80
+032A   2???           00955         goto cmd_digit
+032B                  00956 cmd_digit_9
+032B   3090           00957         MOVLW 0x90
                       00958 
-                      00959 
-0029   1C00           00960         BTFSS   SMCON, MODEAUTO    ; se automático liga watch-dog
-002A   1A85           00961         BTFSC   DISPLAYp, ENA_DISP
-002B   1418           00962         BSF     WDTCON, SWDTEN
-                      00963 
-                      00964 
-002C   0063           00965         SLEEP
-002D   0000           00966         NOP
-                      00967 
-                      00968         ; tratar melhor a questão de se estar segurando um botão e a resposta do motor
-002E   1800           00969         BTFSC   SMCON, MODEAUTO ; TESTA SE ESTÁ EM MODO AUTOMÁTICO
-002F   2???           00970         CALL    AUTO_REFRESH
-                      00971 
-0030   1A03           00972         BTFSC   STATUS, NOT_TO  ; testa se saiu do sleep por watch-dog
-0031   2???           00973         GOTO    MAIN_1
-0032   1285           00974         BCF     DISPLAYp, ENA_DISP  ; desliga display
-0033   1603           00975         BSF     STATUS, NOT_TO
-0034   2???           00976         GOTO    RETORNO_DE_COMANDO
-                      00977 
-0035                  00978 MAIN_1
-                      00979         ; está recebendo dados do controle remoto, não pode desligar relógio
-0035   1912           00980         BTFSC   T2CON, TMR2ON
-0036   2???           00981         GOTO    $-1
-                      00982 
-                      00983         ; alteração do pc usar com cuidado
-0037   3003           00984         MOVLW   0x03
-0038   008A           00985         MOVWF   PCLATH      ; aponta para 0x0300
-0039   08??           00986         MOVF    IrDA_command, W
-003A   01??           00987         CLRF    IrDA_command        ; garante que nada será executado em outras funções
-003B   0082           00988         MOVWF   PCL
-                      00989 
-003C   2???           00990         GOTO    start    ; ocorreu algum erro, resetar
-                      00991 
-                      00992 
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 20
+032C                  00959 cmd_digit
+032C   00??           00960         MOVWF   w_temp
+032D   08??           00961         MOVF    B1_temp, W
+                      00962 
+032E   1D80           00963         BTFSS   SMCON, 3 ; testa se já houve modificação anterior
+032F   08??           00964         MOVF    pos_value, W
+                      00965 
+0330                  00966 CONTINUE_DIGIT
+0330   390F           00967         ANDLW   0x0F
+0331   04??           00968         IORWF   w_temp, F
+0332   0E??           00969         SWAPF   w_temp, W
+0333   00??           00970         MOVWF   B1_temp
+0334   00??           00971         MOVWF   B1
+0335   2???           00972         CALL    SEND_DISPLAY
+0336   1580           00973         BSF     SMCON, 3 ; ativa dado a ser gravado
+0337   0008           00974         RETURN
+                      00975 
+0338                  00976 cmd_apply
+                      00977         ; tratar conversão bcd
+0338   1D80           00978         BTFSS   SMCON, 3 ; ativo se há mudança a ser salva
+0339   0008           00979         RETURN
+033A   08??           00980         MOVF    B1_temp, W
+033B   00??           00981         MOVWF   pos_value
+033C   2???           00982         goto    cmd_change_record
+033D                  00983 cmd_upper
+033D   0A??           00984         INCF    pos_value, W
+033E   1D03           00985         BTFSS   STATUS, Z
+033F   00??           00986         MOVWF   pos_value
+0340   2???           00987         goto    cmd_change_record
+0341                  00988 cmd_lower
+0341   08??           00989         MOVF    pos_value, F
+0342   1D03           00990         BTFSS   STATUS, Z
+0343   03??           00991         DECF    pos_value, F
+0344                  00992 cmd_change_record
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 20
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-3FF4                  00993     END                         ; directive 'end of program'
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 21
+                      00993         ; gravar na eeprom
+0344   1180           00994         BCF     SMCON, 3    ; informa que não há nada a ser gravado
+0345   01??           00995         CLRF    B1_temp      ; descarta temporarios
+0346   01??           00996         CLRF    B2_temp
+0347   2???           00997         goto    cmd_display_show
+0348                  00998 cmd_display
+0348   3020           00999         MOVLW   b'00100000'
+0349   0685           01000         XORWF   PORTA, F
+034A   1A85           01001         BTFSC   DISPLAYp, ENA_DISP
+034B   0008           01002         RETURN  ; se ação foi desligar o display não faz mais nada
+034C                  01003 cmd_display_show
+                      01004         ; converter valor especificado para bcd
+034C   08??           01005         MOVF    pos_value, W
+034D   00??           01006         MOVWF   B1
+034E   01??           01007         CLRF    B2
+034F   2???           01008         CALL    SEND_DISPLAY
+0350   0008           01009         RETURN
+                      01010 
+                      01011 
+                      01012 ; para o movimento ficar suave manter o tempo total desta execução em 4ms
+0351                  01013 cmd_open
+0351   01??           01014         clrf    counter
+                      01015 
+0352   2???           01016 st1     call    MOTOR_REVERSE
+                      01017 
+0353   2???           01018         call    DELAYms
+                      01019         ;call    DELAYms
+                      01020         ;call    DELAYms
+                      01021         ;call    DELAYms
+                      01022         ;call    DELAYms
+0354   0A??           01023         incf    counter, F
+0355   3028           01024         movlw   0x28
+0356   06??           01025         xorwf   counter, w
+0357   1D03           01026         btfss   STATUS, Z
+                      01027 
+0358   2???           01028         goto    st1
+                      01029 
+0359   2???           01030         call    MOTOR_OFF
+035A   0008           01031         RETURN
+                      01032 
+                      01033 ; para o movimento ficar suave manter o tempo total desta execução em 4ms
+035B                  01034 cmd_close
+035B   01??           01035         clrf    counter
+                      01036 
+035C   2???           01037 st2     call    MOTOR_DIRECT
+                      01038 
+035D   2???           01039         call    DELAYms
+                      01040         ;call    DELAYms
+                      01041         ;call    DELAYms
+                      01042         ;call    DELAYms
+                      01043         ;call    DELAYms
+035E   0A??           01044         incf    counter, F
+035F   3028           01045         movlw   0x28
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 21
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0360   06??           01046         xorwf   counter, w
+0361   1D03           01047         btfss   STATUS, Z
+                      01048 
+0362   2???           01049         goto    st2
+                      01050 
+0363   2???           01051         call    MOTOR_OFF
+0364   0008           01052         RETURN
+                      01053 
+0365                  01054 cmd_auto
+0365   1400           01055         BSF     SMCON, MODEAUTO        ; coloca em modo automático
+0366   0008           01056         RETURN
+                      01057 
+0367                  01058 cmd_manual
+0367   1000           01059         BCF     SMCON, MODEAUTO
+0368   0008           01060         RETURN
+                      01061 
+0369                  01062 cmd_show_now
+0369   141F           01063         BSF     ADCON0, ADON        ; LIGA CONVERSOR A/D
+036A   2???           01064         CALL    DELAYms
+036B   149F           01065         BSF     ADCON0, GO_NOT_DONE ; INICIA CONVERSÃO
+036C   189F           01066         BTFSC   ADCON0, GO_NOT_DONE ; TESTA SE TERMINOU
+036D   2???           01067         GOTO    $-1
+036E   081E           01068         MOVF    ADRESH, W           ; ARMAZENA O RESULTADO DA CONVERSÃO
+036F   00??           01069         MOVWF   B1
+0370   01??           01070         CLRF    B2
+0371   2???           01071         CALL    SEND_DISPLAY
+0372   0008           01072         RETURN
+                      01073 
+                      01074 
+3FF4                  01075     END                         ; directive 'end of program'
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 22
 
 
 SYMBOL TABLE
@@ -1138,18 +1226,18 @@ ADCS0                             00000004
 ADCS1                             00000005
 ADCS2                             00000006
 ADDR_EE_POS                       00000000
-ADD_B1_0                          000000D2
-ADD_B1_1                          000000DC
-ADD_B2                            000000E6
+ADD_B1_0                          000000B4
+ADD_B1_1                          000000BE
+ADD_B2                            000000C8
 ADFM                              00000007
 ADIE                              00000006
 ADIF                              00000006
 ADON                              00000000
 ADRESH                            0000001E
 ADRESL                            0000009E
-AD_DONE                           00000091
-AD_END                            0000009B
-AD_FORWARD                        000000A1
+AD_DONE                           00000082
+AD_END                            0000008E
+AD_FORWARD                        00000094
 ANS0                              00000000
 ANS1                              00000001
 ANS2                              00000002
@@ -1159,11 +1247,13 @@ ANS5                              00000005
 ANS6                              00000006
 ANS7                              00000007
 ANSEL                             00000091
-AUTO_REFRESH                      0000008F
-B1                                0000005A
-B2                                0000005B
-BCD_CONVERT                       000000C4
-BCD_TO_BINARY_DOZENS              000002A7
+AUTO_REFRESH                      00000080
+B1                                0000005C
+B1_temp                           0000005E
+B2                                0000005D
+B2_temp                           0000005F
+BCD_CONVERT                       000000A6
+BCD_TO_BINARY_DOZENS              000002A8
 BIT_PATTERN                       00000200
 C                                 00000000
 C1IE                              00000003
@@ -1183,14 +1273,14 @@ CCP1M1                            00000001
 CCP1M2                            00000002
 CCP1M3                            00000003
 CCPR1                             00000013
-CCPR1H                            00000014
-CCPR1L                            00000013
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 22
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 23
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+CCPR1H                            00000014
+CCPR1L                            00000013
 CHS0                              00000002
 CHS1                              00000003
 CHS2                              00000004
@@ -1200,10 +1290,12 @@ CM1                               00000001
 CM2                               00000002
 CMCON0                            00000019
 CMCON1                            0000001A
+COMMANDS                          00000300
+CONTINUE_DIGIT                    00000330
 DC                                00000001
 DC1B0                             00000004
 DC1B1                             00000005
-DELAYms                           00000011
+DELAYms                           00000000
 DEVICE                            00000001
 DISPLAYp                          00000005
 ECCPAS                            00000017
@@ -1221,7 +1313,8 @@ EEDATA                            0000009A
 EEIE                              00000007
 EEIF                              00000007
 ENA_DISP                          00000005
-END_INTERRUPT                     0000000B
+END_INTERRUPT                     0000000D
+END_SEND                          000000E9
 F                                 00000001
 FSR                               00000004
 GIE                               00000007
@@ -1230,7 +1323,7 @@ GO_DONE                           00000001
 GO_NOT_DONE                       00000001
 HTS                               00000002
 INDF                              00000000
-INIT_IrDA                         0000001B
+INIT_IrDA                         0000000A
 INTCON                            0000000B
 INTE                              00000004
 INTEDG                            00000006
@@ -1239,17 +1332,17 @@ INTF                              00000001
 IOC                               00000096
 IOC0                              00000000
 IOC1                              00000001
-IOC2                              00000002
-IOC3                              00000003
-IOC4                              00000004
-IOC5                              00000005
-IOCA                              00000096
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 23
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 24
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+IOC2                              00000002
+IOC3                              00000003
+IOC4                              00000004
+IOC5                              00000005
+IOCA                              00000096
 IOCA0                             00000000
 IOCA1                             00000001
 IOCA2                             00000002
@@ -1260,38 +1353,36 @@ IRCF0                             00000004
 IRCF1                             00000005
 IRCF2                             00000006
 IRP                               00000007
-IrDA_COMMAND_12_BITS              00000054
-IrDA_COMMAND_15_BITS              0000005C
+IrDA_COMMAND_12_BITS              00000042
+IrDA_COMMAND_15_BITS              0000004B
 IrDA_DATA                         00000052
-IrDA_FALL                         00000020
-IrDA_FALLING                      0000000E
-IrDA_FALL_ABORT                   00000027
-IrDA_FALL_SAMPLE                  0000002A
-IrDA_FALL_SAMPLE_1                00000029
-IrDA_SAMPLER                      0000002D
-IrDA_SAMPLER_1                    00000036
-IrDA_SAMPLER_3                    0000003D
-IrDA_SAMPLER_5                    00000040
-IrDA_SAMPLER_ABORT                0000006E
-IrDA_TIME                         00000010
+IrDA_FALL                         0000000F
+IrDA_FALLING                      00000013
+IrDA_FALL_ABORT                   00000015
+IrDA_FALL_SAMPLE                  00000018
+IrDA_FALL_SAMPLE_1                00000017
+IrDA_SAMPLER                      0000001C
+IrDA_SAMPLER_1                    00000024
+IrDA_SAMPLER_3                    0000002B
+IrDA_SAMPLER_5                    0000002E
+IrDA_SAMPLER_ABORT                0000005F
+IrDA_TIME                         00000016
 IrDA_bits                         00000050
 IrDA_command                      00000055
 IrDA_discard                      00000051
 IrDAb                             00000002
 IrDAp                             00000005
-KEEP_SHIFTING                     000000E8
-LOOP_BCD_COUNTER                  0000005C
-LOOP_SHIFT                        000000CA
+KEEP_SHIFTING                     000000CA
+LOOP_BCD_COUNTER                  00000060
+LOOP_SHIFT                        000000AC
 LTS                               00000001
-MAIN_1                            00000035
+MAIN_1                            00000026
 MODEAUTO                          00000000
-MOTOR_DIRECT                      000000A8
-MOTOR_DO                          000000AE
-MOTOR_OFF                         000000A6
-MOTOR_REVERSE                     000000AA
-MOTOR_STATE                       000000B3
-MOTOR_STATE_ARM1                  000000BA
-MOTOR_STATE_ARM2                  000000C1
+MOTOR_DIRECT                      0000009B
+MOTOR_DO                          000000A1
+MOTOR_OFF                         00000099
+MOTOR_REVERSE                     0000009D
+NEXT_BIT                          000000D9
 NOT_BOD                           00000000
 NOT_BOR                           00000000
 NOT_DONE                          00000001
@@ -1300,15 +1391,15 @@ NOT_POR                           00000001
 NOT_RAPU                          00000007
 NOT_T1SYNC                        00000002
 NOT_TO                            00000004
-OPTION_REG                        00000081
-OSCCON                            0000008F
-OSCTUNE                           00000090
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 24
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 25
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+OPTION_REG                        00000081
+OSCCON                            0000008F
+OSCTUNE                           00000090
 OSFIE                             00000002
 OSFIF                             00000002
 OSTS                              00000003
@@ -1327,8 +1418,6 @@ PDC6                              00000006
 PEIE                              00000006
 PIE1                              0000008C
 PIR1                              0000000C
-POPCTX                            0000000B
-POPW                              00000003
 PORTA                             00000005
 PORTC                             00000007
 PR2                               00000092
@@ -1341,8 +1430,6 @@ PSSAC0                            00000002
 PSSAC1                            00000003
 PSSBD0                            00000000
 PSSBD1                            00000001
-PUSHCTX                           00000007
-PUSHW                             00000000
 PWM1CON                           00000016
 RA0                               00000000
 RA1                               00000001
@@ -1359,28 +1446,26 @@ RC3                               00000003
 RC4                               00000004
 RC5                               00000005
 RD                                00000000
-READ_EEPROM                       00000083
-RECORD_EEPROM                     00000070
-REFRESH_END                       000000A3
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 25
+READ_EEPROM                       00000074
+RECORD_EEPROM                     00000061
+REFRESH_END                       00000096
+REMOTE_CONTROL_COMMANDS_AUTO      0000020C
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 26
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-REMOTE_CONTROL_COMMANDS_AUTO      0000020C
 REMOTE_CONTROL_COMMANDS_MANUAL    00000250
-RETORNO_DE_COMANDO                00000029
 RP0                               00000005
 RP1                               00000006
 SBODEN                            00000004
 SBOREN                            00000004
 SCS                               00000000
-SEND_DISPLAY                      000000F0
+SEND_DISPLAY                      000000D2
 SEVEN_SEG_CODE_LOOKUP             00000294
 SMCON                             00000056
-STACK_BASE                        00000020
-STACK_LIMIT                       0000006F
+START_SEND                        000000D4
 STATUS                            00000003
 SWDTEN                            00000000
 T0CS                              00000005
@@ -1400,8 +1485,8 @@ T2CKPS1                           00000001
 T2CON                             00000012
 T2IE                              00000001
 T2IF                              00000001
-TEST_B1_1                         000000D4
-TEST_B2                           000000DE
+TEST_B1_1                         000000B6
+TEST_B2                           000000C0
 TMR0                              00000001
 TMR0IE                            00000005
 TMR0IF                            00000002
@@ -1421,15 +1506,15 @@ TOUTPS0                           00000003
 TOUTPS1                           00000004
 TOUTPS2                           00000005
 TOUTPS3                           00000006
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 26
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 27
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-TRISA                             00000085
-TRISA0                            00000000
-TRISA1                            00000001
 TRISA2                            00000002
 TRISA3                            00000003
 TRISA4                            00000004
@@ -1447,7 +1532,7 @@ TUN2                              00000002
 TUN3                              00000003
 TUN4                              00000004
 ULPWUE                            00000005
-VALUE_BIN                         0000005D
+VALUE_BIN                         00000061
 VCFG                              00000006
 VR0                               00000000
 VR1                               00000001
@@ -1478,17 +1563,17 @@ WR                                00000001
 WREN                              00000002
 WRERR                             00000003
 Z                                 00000002
-_.org_0_0323                      00000323
+_.org_1_036D                      0000036D
 _BOD_NSLEEP                       00003EFF
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 27
+_BOD_OFF                          00003CFF
+_BOD_ON                           00003FFF
+_BOD_SBODEN                       00003DFF
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 28
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-_BOD_OFF                          00003CFF
-_BOD_ON                           00003FFF
-_BOD_SBODEN                       00003DFF
 _BOREN_NSLEEP                     00003EFF
 _BOREN_OFF                        00003CFF
 _BOREN_ON                         00003FFF
@@ -1514,11 +1599,11 @@ _FOSC_INTOSCCLK                   00003FFD
 _FOSC_INTOSCIO                    00003FFC
 _FOSC_LP                          00003FF8
 _FOSC_XT                          00003FF9
-_FUNCTIONS_0019                   00000019
-_FUNCTIONS_0072                   00000072
-_FUNCTIONS_007F                   0000007F
-_FUNCTIONS_0089                   00000089
-_FUNCTIONS_00A9                   000000A9
+_FUNCTIONS_0008                   00000008
+_FUNCTIONS_0063                   00000063
+_FUNCTIONS_0070                   00000070
+_FUNCTIONS_007A                   0000007A
+_FUNCTIONS_009C                   0000009C
 _HS_OSC                           00003FFA
 _IDLOC0                           00002000
 _IDLOC1                           00002001
@@ -1531,7 +1616,6 @@ _INTOSCIO                         00003FFC
 _INTRC_OSC_CLKOUT                 00003FFD
 _INTRC_OSC_NOCLKOUT               00003FFC
 _LP_OSC                           00003FF8
-_MAIN_0036                        00000036
 _MCLRE_OFF                        00003FDF
 _MCLRE_ON                         00003FFF
 _PWRTE_OFF                        00003FFF
@@ -1539,36 +1623,53 @@ _PWRTE_ON                         00003FEF
 _WDTE_OFF                         00003FF7
 _WDTE_ON                          00003FFF
 _WDT_OFF                          00003FF7
-MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-3-2014  4:28:39         PAGE 28
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FF9
+__16F684                          00000001
+cmd_apply                         00000338
+MPASM 5.55  /HOME/GILSON/UFRGS/MICROS/PROJET   4-7-2014  6:31:19         PAGE 29
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-_WDT_ON                           00003FFF
-_XT_OSC                           00003FF9
-__16F684                          00000001
-cmd_apply                         00000301
-cmd_auto                          0000031A
-cmd_close                         0000030F
-cmd_digit                         00000301
-cmd_display                       00000302
-cmd_lower                         00000301
-cmd_manual                        0000031E
-cmd_open                          00000304
-cmd_show_now                      00000320
-cmd_upper                         00000301
-counter                           00000059
-final_da_execucao                 000000EF
-motor_pos                         00000058
-pos_value                         00000057
+cmd_auto                          00000365
+cmd_change_record                 00000344
+cmd_close                         0000035B
+cmd_digit                         0000032C
+cmd_digit_0                       00000319
+cmd_digit_1                       0000031B
+cmd_digit_2                       0000031D
+cmd_digit_3                       0000031F
+cmd_digit_4                       00000321
+cmd_digit_5                       00000323
+cmd_digit_6                       00000325
+cmd_digit_7                       00000327
+cmd_digit_8                       00000329
+cmd_digit_9                       0000032B
+cmd_display                       00000348
+cmd_display_show                  0000034C
+cmd_lower                         00000341
+cmd_lower_unit                    00000309
+cmd_manual                        00000367
+cmd_open                          00000351
+cmd_show_now                      00000369
+cmd_unit                          0000030C
+cmd_upper                         0000033D
+cmd_upper_unit                    00000305
+count_disp                        00000057
+counter                           0000005B
+final_da_execucao                 000000D1
+motor_pos                         0000005A
+pos_value                         00000059
 record_addr                       00000004
 record_data                       00000003
-st1                               00000305
-st2                               00000310
+st1                               00000352
+st2                               0000035C
 start                             00000000
-status_temp                       00000002
+status_bk                         00000002
 w_bk                              00000001
+w_disp                            00000058
 w_temp                            00000000
 
 Errors   :     0
