@@ -7,6 +7,7 @@
 
 \usepackage{graphicx,url}
 \usepackage[figuresleft]{rotating}
+\usepackage{pdflscape}
 
 
      
@@ -62,12 +63,16 @@ Os valores de luminosidade, nos dois casos (manual e automático) poderão ser vis
 Em modo automático, o valor de luminosidade indicado no display será aquele que o dispositivo utilizará de referência para readequar a abertura da basculante. Já no modo manual, o valor indicado será aquele que estiver sendo lido pelo conversor A/D ligado ao LDR no momento.
 
 \clearpage
-\begin{sidewaysfigure}[ht]
+\begin{landscape}
+%\begin{sidewaysfigure}[ht]
+\begin{figure}
 \begin{center}
 \includegraphics[scale=1]{esq_2.png} 
 \caption{Esquemático do projeto.}
 \end{center}
-\end{sidewaysfigure}
+\end{figure}
+%\end{sidewaysfigure}
+\end{landscape}
 \clearpage
 
 \nocite{*}
