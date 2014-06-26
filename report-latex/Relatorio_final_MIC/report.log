@@ -1,7 +1,9 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2014.3.25)  25 JUN 2014 23:16
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2014.3.25)  25 JUN 2014 23:38
 entering extended mode
 **report.tex
-("C:\Users\Rafael\Desktop\MIC-final report\report.tex"
+
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\report.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
 abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
@@ -58,7 +60,8 @@ Package: inputenc 2008/03/30 v1.1d Input encoding file
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\base\latin1.def"
 File: latin1.def 2008/03/30 v1.1d Input encoding file
 ))
-("C:\Users\Rafael\Desktop\MIC-final report\sbc-template.sty"
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\sbc-template.sty
 Package: sbc-template 2001/06/09
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\geometry\geometry.sty"
@@ -93,7 +96,8 @@ Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 \Gm@dimlist=\toks17
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\geometry\geometry.cfg"))
-("C:\Users\Rafael\Desktop\MIC-final report\caption2.sty"
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\caption2.sty
 Package: caption2 2002/08/03 v2.1 Customising captions (AS)
 \captionmargin=\dimen112
 \captionwidth=\dimen113
@@ -179,7 +183,8 @@ Package: lscape 2000/10/22 v3.01 Landscape Pages (DPC)
 )
 Package pdflscape Info: Auto-detected driver: pdftex on input line 80.
 )
-("C:\Users\Rafael\Desktop\MIC-final report\report.aux")
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\report.aux)
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 28.
 LaTeX Font Info:    ... okay on input line 28.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 28.
@@ -259,47 +264,60 @@ LaTeX Font Info:    Try loading font information for OT1+pcr on input line 30.
  ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\text/objetivos.tex
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <13> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 35.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 39.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 5.
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\omsptm.fd"
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 39.
- [1
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 5.
+)
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\text/metodologia.tex)
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\text/resultados.tex [1
 
-{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}]
-<images/esq_2.png, id=12, 693.3102pt x 486.618pt>
+{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}] <images/esq_2.png, id=12,
+ 693.3102pt x 486.618pt>
 File: images/esq_2.png Graphic file (type png)
- <use images/esq_2.png>
-Package pdftex.def Info: images/esq_2.png used on input line 63.
+
+<use images/esq_2.png>
+Package pdftex.def Info: images/esq_2.png used on input line 18.
 (pdftex.def)             Requested size: 693.3085pt x 486.6168pt.
 
-Overfull \hbox (18.97818pt too wide) in paragraph at lines 63--64
+Overfull \hbox (18.97818pt too wide) in paragraph at lines 18--19
  [] 
  []
 
-LaTeX Font Info:    Try loading font information for OT1+phv on input line 64.
+LaTeX Font Info:    Try loading font information for OT1+phv on input line 19.
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1phv.fd"
 File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
 )
 LaTeX Font Info:    Font shape `OT1/phv/bx/n' in size <10> not available
-(Font)              Font shape `OT1/phv/b/n' tried instead on input line 64.
+(Font)              Font shape `OT1/phv/b/n' tried instead on input line 19.
 
 
-LaTeX Warning: Float too large for page by 87.99538pt on input line 67.
+LaTeX Warning: Float too large for page by 87.99538pt on input line 22.
 
-[2 <C:/Users/Rafael/Desktop/MIC-final report/images/esq_2.png>]
+[2 <C:/Users/Rafael/Downloads/cs420/fileshare/Trabalho-MIC/Trabalho-MIC/report-
+latex/Relatorio_final_MIC/images/esq_2.png>]
 <images/detalhe_motor.jpg, id=18, 722.7pt x 963.6pt>
 File: images/detalhe_motor.jpg Graphic file (type jpg)
 
 <use images/detalhe_motor.jpg>
-Package pdftex.def Info: images/detalhe_motor.jpg used on input line 73.
+Package pdftex.def Info: images/detalhe_motor.jpg used on input line 28.
 (pdftex.def)             Requested size: 252.8716pt x 337.16516pt.
-
-("C:\Users\Rafael\Desktop\MIC-final report\report.bbl"
+)
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\text/codigo.tex)
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\text/consideracoes.tex)
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\report.bbl
 Underfull \hbox (badness 10000) in paragraph at lines 20--24
 $\OT1/pcr/m/n/12 static / active / en / resource / technical / document / datas
 heet /$
@@ -310,7 +328,8 @@ heet /$
 
 
 
- <C:/Users/Rafael/Desktop/MIC-final report/images/detalhe_motor.jpg>]
+ <C:/Users/Rafael/Downloads/cs420/fileshare/Trabalho-MIC/Trabalho-MIC/report-la
+tex/Relatorio_final_MIC/images/detalhe_motor.jpg>]
 Underfull \hbox (badness 2573) in paragraph at lines 33--37
 []\OT1/ptm/m/n/12 Vishay Se-mi-con-duc-tor GmbH.  \OT1/ptm/b/n/12 TSOP18\OT1/pt
 m/m/n/12 .  Dis-pon[]vel em: $\OT1/pcr/m/n/12 http : / / pdf1 .$
@@ -322,28 +341,26 @@ $\OT1/pcr/m/n/12 alldatasheet . com / datasheet-[]pdf / view / 26603 / VISHAY /
 $
  []
 
-) [4] ("C:\Users\Rafael\Desktop\MIC-final report\report.aux")
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
- ) 
+) [4]
+(C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
+ex\Relatorio_final_MIC\report.aux) ) 
 Here is how much of TeX's memory you used:
- 2886 strings out of 493921
- 39671 string characters out of 3144873
+ 2903 strings out of 493921
+ 41809 string characters out of 3144873
  101611 words of memory out of 3000000
  6123 multiletter control sequences out of 15000+200000
  18235 words of font info for 42 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
- 30i,8n,28p,659b,310s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Program Files (x86)/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc}<C:/Progra
-m Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program 
-Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Program Fil
-es (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files (
-x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files (x8
-6)/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><C:/Program Files (x86)/MiKTeX
- 2.9/fonts/type1/urw/helvetic/uhvb8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fon
-ts/type1/urw/times/utmb8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/ur
-w/times/utmr8a.pfb>
+ 30i,8n,28p,466b,310s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Program Files (x86)/MiKTeX 2.9/fonts/en
+c/dvips/fontname/8r.enc}<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/a
+msfonts/cm/cmmi12.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/ams
+fonts/cm/cmmi8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfon
+ts/cm/cmr8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/c
+m/cmsy10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.
+pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvb8a.pfb><C:/
+Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Fil
+es (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb>
 Output written on report.pdf (4 pages, 201125 bytes).
 PDF statistics:
  51 PDF objects out of 1000 (max. 8388607)

@@ -32,19 +32,56 @@
 %\section{Introdução}
 
 
-\input{text/objetivos.tex}
-\input{text/metodologia.tex}
-\input{text/resultados.tex}
-\input{text/codigo.tex}
-\input{text/consideracoes.tex}
+\section{Objetivo}
+O objetivo inicial da nossa proposta era o de projetar e construir um dispositivo utilizando um microcontrolador \textbf{PIC-16F684} da $MicroChip^{TM}$ que fosse capaz de gerenciar a abertura de uma janela do tipo basculante. Este controle seria feito através de medidas da luminosidade do ambiente, de acordo com preferências definidas pelo usuário. Os modos sob os quais ele iria operar seriam os seguintes:
 
-\nocite{*}
+\begin{itemize}
+	\item Controle manual da abertura, feito diretamente pelo usuário;
+	\item Controle automático realizado pelo PIC, de acordo com o grau de iluminação ambiente percebido pelo sensor.
+\end{itemize}
 
-\bibliographystyle{sbc}
-\bibliography{report}
+\section{Metodologia}
+Para gerar 
 
-\end{document}
+\section{Resultados}
+A figura~\ref{fig:schem} mostra o resultado final do esquemático do projeto. Os componentes utilizados na confecção do projeto são listados a seguir:
 
+\begin{itemize}
+\item Microcontrolador \textbf{PIC-16F684};
+\item Um LDR;
+\item Um receiver de infravermelho TSOP-1836;
+\item Um IC Driver L293D;
+\item Um motor de passo;
+\item Dois IC Shifters 74HC595;
+\item Um display de 7 segmentos duplo A-562G.
+\end{itemize}
+
+\clearpage
+\begin{landscape}
+\begin{figure}
+\begin{center}
+\includegraphics[scale=1]{images/esq_2.png} 
+\caption{Esquemático do projeto.}
+\label{fig:schem}
+\end{center}
+\end{figure}
+\end{landscape}
+\clearpage
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[height = 0.5\textheight]{images/detalhe_motor.jpg} 
+\caption{Detalhe do motor linear.}
+\label{fig:motor}
+\end{center}
+\end{figure}
+
+
+\section{Código do PIC}
+...
+
+\section{Considerações finais}
+...
 %\section{Proposta geral}
 %Nossa proposta é a de construir um dispositivo microcontrolado com um \textbf{PIC-16F684} da $MicroChip^{TM}$ capaz de gerenciar a abertura de uma janela do tipo basculante de acordo com o nível de luminosidade ambiente desejado pelo usuário. Desejamos projetá-lo de modo que opere em dois modos básicos:
 %
@@ -79,4 +116,9 @@
 %Em modo automático, o valor de luminosidade indicado no display será aquele que o dispositivo utilizará de referência para readequar a abertura da basculante. Já no modo manual, o valor indicado será aquele que estiver sendo lido pelo conversor A/D ligado ao LDR no momento.
 
 
+\nocite{*}
 
+\bibliographystyle{sbc}
+\bibliography{report}
+
+\end{document}
