@@ -1,0 +1,38 @@
+\begin{thebibliography}{}
+
+\bibitem[rem ]{remote}
+\textbf{SONY SIRC infrared protocol}.
+\newblock Disponível em:
+  \url{http://picprojects.org.uk/projects/sirc/sonysirc.pdf}.
+
+\bibitem[{MICROCHIP} ]{pic}
+{MICROCHIP}.
+\newblock \textbf{16F684 Data Sheet}.
+\newblock Disponível em:
+  \url{http://ww1.microchip.com/downloads/en/DeviceDoc/41202F-print.pdf}.
+
+\bibitem[{PARA LIGHT ELECTRONICS CO.} ]{display}
+{PARA LIGHT ELECTRONICS CO.}
+\newblock \textbf{0.56 INCH DUAL DIGITS DISPLAY}.
+\newblock Disponível em: \url{http://www.paralight.us/uploads/pdf/A-562G.pdf}.
+
+\bibitem[{STMicroelectronics} a]{driver}
+{STMicroelectronics}.
+\newblock \textbf{L293D, L293DD - PUSH-PULL FOUR CHANNEL DRIVER WITH DIODES}.
+\newblock Disponível em:
+  \url{http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00000059.pdf}.
+
+\bibitem[{STMicroelectronics} b]{shifter}
+{STMicroelectronics}.
+\newblock \textbf{M74HC595 - 8-bit shift register with output latches
+  (3-state)}.
+\newblock Disponível em:
+  \url{http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00000339.pdf}.
+
+\bibitem[{Vishay Semiconductor GmbH} ]{receiver}
+{Vishay Semiconductor GmbH}.
+\newblock \textbf{TSOP18}.
+\newblock Disponível em:
+  \url{http://pdf1.alldatasheet.com/datasheet-pdf/view/26603/VISHAY/TSOP1836.html}.
+
+\end{thebibliography}

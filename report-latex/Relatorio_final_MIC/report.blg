@@ -1,0 +1,16 @@
+This is BibTeX, Version 0.99dThe top-level auxiliary file: report.aux
+The style file: sbc.bst
+Database file #1: report.bib
+I was expecting a `,' or a `}'---line 30 of file report.bib
+ : 
+ : @MISC{display,
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Warning--to sort, need author or key in remote
+Warning--empty year in remote
+Warning--empty year in pic
+Warning--empty year in display
+Warning--empty year in driver
+Warning--empty year in shifter
+Warning--empty year in receiver
+(There was 1 error message)
