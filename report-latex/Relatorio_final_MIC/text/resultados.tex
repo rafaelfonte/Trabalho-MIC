@@ -19,18 +19,22 @@ Além destes, componentes como resistores, capacitores e transistores também fora
 
 
 
-\subsection{Programa assembly}
-De modo que pudéssemos suportar todos os periféricos citados, tivemos que fazer diversas adições ao código assembly ao longo do projeto. Os eventos que causam interrupções no PIC são aqueles relacionados à entrada do controle remoto (teste de entrada de valor ou do amostrador de bits). Além disso, 
+\subsection{Programa desenvolvido}
+Para este projeto de disciplina, era obrigatório que se realizasse a programação do microcontrolador utilizando-se sua respectiva linguagem assembly. De modo que pudéssemos suportar todos os periféricos citados, tivemos que fazer diversas adições ao código assembly inicial ao longo do projeto. Os eventos que causam interrupções no PIC são aqueles relacionados à entrada do controle remoto (teste de entrada de valor ou do amostrador de bits). Também foi necessário desenvolver trechos de código para realizar a conversão de valores BCD para a leitura a partir do conversor A/D alimentado pelo sinal do LDR.
+
+O controle das bobinas do motor também é realizado por software, havendo a possibilidade de se utilizar diferentes sequências de passo de acordo com a necessidade da aplicação. Outro item importante do código é a recepção de comandos do controle remoto que, da forma como está organizada, permite o desenvolvimento de novas rotinas, facilitando uma melhor configurabilidade do dispositivo.
 
 
 \subsection{Ambiente de teste}
-Além do circuito microcontrolado proposto, desejávamos confeccionar um ambiente próprio para testar nossa solução e validar a ideia do projeto. Deste modo, decidimos por construir um pequeno sistema basculante de teste, o qual permitisse que o circuito microcontrolado pudesse realizar o controle de aletas móveis. Este movimento iria, então, alterar o grau de luminosidade do interior de uma caixa sobre a qual colocarímos este sistema de aletas e, dentro desta caixa, fixaríamos o sensor do dispositivo.
+Além do circuito microcontrolado proposto, desejávamos confeccionar um ambiente próprio para testar nossa solução e validar a ideia do projeto. Deste modo, decidimos por construir um pequeno sistema basculante de teste, o qual permitisse que o circuito microcontrolado pudesse realizar o controle de aletas móveis. O movimento delas iria, então, alterar o grau de luminosidade do interior de uma caixa sobre a qual colocarímos este sistema de aletas e, dentro desta caixa, fixaríamos o sensor do dispositivo.
 
-As figuras a seguir ilustram a construção deste sistema. A Figura~\ref{fig:paletas-detalhe} mostra em detalhe parte do mecanismo utilizado para movimentar as aletas da basculante. Já a Figura~\ref{fig:paletas-montado} tem por finalidade mostrar como as aletas são fixadas numa estrutura única. A Figura~\ref{fig:motor} mostra como a estrutura 
+As figuras a seguir ilustram a construção deste sistema. A Figura~\ref{fig:paletas-detalhe} mostra em detalhe parte do mecanismo utilizado para movimentar em conjunto as aletas da basculante. A Figura~\ref{fig:paletas-montado}, por sua vez, tem por finalidade mostrar como as aletas são fixadas numa estrutura única. Já a Figura~\ref{fig:motor} dá a ideia de como a estrutura de aletas é movimentada pelo motor de passo, além de definir seus limites de curso. As posições limites das aletas são: completamente fechadas (luminosidade mínimia) e abertas em $90^{\circ}$ (luminosidade máxima, caso a fonte de luz emita raios perpendiculares ao plano superior da caixa).
+
+Como no nosso caso de testes a distância entre as aletas e o fundo da caixa onde está o sensor é muito pequena, a luz incidente no interior dela pouco se difunde, sendo fortemente coletada nas regiões diretamente abaixo das frestas entre as aletas. Isso faz com que haja pouca gradação das intensidades de luz na região do sensor, e não permitindo que se atinja certos valores de quantidade de luz lidos pelo LDR (como ocorreria num ambiente mais amplo). Desta forma, ainda precisamos utilizar papel alumínio na base da caixa para tornar a distribuição de luz mais uniforme e difusa pelo seu interior, e ainda garantir que o LDR fosse estimulado por este tipo de luz apenas. Com essas decisões, foi possível garantir que houvesse uma gradação mais suave dos níveis de luz dentro da caixa, permitindo que as aletas assumissem diversas posições diferentes de acordo com a configuração programada no modo automático do PIC.
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width = 0.5\textheight]{images/aletas.jpg} 
+\includegraphics[width = 0.65\textwidth]{images/aletas.jpg} 
 \caption{Teste do esquema de movimentação das aletas.}
 \label{fig:paletas-detalhe}
 \end{center}
@@ -38,7 +42,7 @@ As figuras a seguir ilustram a construção deste sistema. A Figura~\ref{fig:palet
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width = 0.5\textheight]{images/aletas_montado.jpg} 
+\includegraphics[width = 0.65\textwidth]{images/aletas_montado.jpg} 
 \caption{Detalhe da montagem das aletas da basculante.}
 \label{fig:paletas-montado}
 \end{center}
@@ -47,7 +51,7 @@ As figuras a seguir ilustram a construção deste sistema. A Figura~\ref{fig:palet
 \begin{figure}[H]
 \begin{center}
 \includegraphics[height = 0.5\textheight]{images/detalhe_motor.jpg} 
-\caption{Detalhe do motor linear.}
+\caption{Detalhe do motor linear, da estrutura de movimentação das aletas e dos sensores de limite de curso.}
 \label{fig:motor}
 \end{center}
 \end{figure}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2014.3.25)  27 JUN 2014 00:25
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2014.3.25)  27 JUN 2014 03:11
 entering extended mode
 **report.tex
 
@@ -185,19 +185,19 @@ Package pdflscape Info: Auto-detected driver: pdftex on input line 80.
 )
 (C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
 ex\Relatorio_final_MIC\report.aux)
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 28.
-LaTeX Font Info:    ... okay on input line 28.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 28.
-LaTeX Font Info:    ... okay on input line 28.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 28.
-LaTeX Font Info:    ... okay on input line 28.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 28.
-LaTeX Font Info:    ... okay on input line 28.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 28.
-LaTeX Font Info:    ... okay on input line 28.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 28.
-LaTeX Font Info:    ... okay on input line 28.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 28.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 27.
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1ptm.fd"
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
@@ -251,16 +251,16 @@ File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 \everyMPtoPDFconversion=\toks23
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <16> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 30.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 29.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 30.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 29.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 30.
+(Font)              <12> on input line 29.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 30.
+(Font)              <8> on input line 29.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 30.
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 30.
+(Font)              <6> on input line 29.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 29.
  ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
@@ -279,36 +279,33 @@ LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <12> not available
 (C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
 ex\Relatorio_final_MIC\text/resultados.tex [1
 
-{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}] <images/aletas.jpg, id=12
-, 963.6pt x 722.7pt>
+{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}] [2] <images/aletas.jpg, i
+d=17, 963.6pt x 722.7pt>
 File: images/aletas.jpg Graphic file (type jpg)
 
 <use images/aletas.jpg>
-Package pdftex.def Info: images/aletas.jpg used on input line 33.
-(pdftex.def)             Requested size: 337.16516pt x 252.8716pt.
-LaTeX Font Info:    Try loading font information for OT1+phv on input line 34.
+Package pdftex.def Info: images/aletas.jpg used on input line 37.
+(pdftex.def)             Requested size: 277.41176pt x 208.05583pt.
+LaTeX Font Info:    Try loading font information for OT1+phv on input line 38.
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1phv.fd"
 File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
 )
 LaTeX Font Info:    Font shape `OT1/phv/bx/n' in size <10> not available
-(Font)              Font shape `OT1/phv/b/n' tried instead on input line 34.
+(Font)              Font shape `OT1/phv/b/n' tried instead on input line 38.
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [2]
-<images/aletas_montado.jpg, id=16, 963.6pt x 722.7pt>
+<images/aletas_montado.jpg, id=18, 963.6pt x 722.7pt>
 File: images/aletas_montado.jpg Graphic file (type jpg)
 
 <use images/aletas_montado.jpg>
-Package pdftex.def Info: images/aletas_montado.jpg used on input line 41.
-(pdftex.def)             Requested size: 337.16516pt x 252.8716pt.
+Package pdftex.def Info: images/aletas_montado.jpg used on input line 45.
+(pdftex.def)             Requested size: 277.41176pt x 208.05583pt.
 
-<images/detalhe_motor.jpg, id=17, 722.7pt x 963.6pt>
+<images/detalhe_motor.jpg, id=19, 722.7pt x 963.6pt>
 File: images/detalhe_motor.jpg Graphic file (type jpg)
 
 <use images/detalhe_motor.jpg>
-Package pdftex.def Info: images/detalhe_motor.jpg used on input line 49.
+Package pdftex.def Info: images/detalhe_motor.jpg used on input line 53.
 (pdftex.def)             Requested size: 252.8716pt x 337.16516pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -318,25 +315,31 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 fileshare/Trabalho-MIC/Trabalho-MIC/report-latex/Relatorio_final_MIC/images/ale
 tas_montado.jpg>] [4 <C:/Users/Rafael/Downloads/cs420/fileshare/Trabalho-MIC/Tr
 abalho-MIC/report-latex/Relatorio_final_MIC/images/detalhe_motor.jpg>]
-<images/esq_2.png, id=25, 693.3102pt x 486.618pt>
+<images/esq_2.png, id=27, 693.3102pt x 486.618pt>
 File: images/esq_2.png Graphic file (type png)
  <use images/esq_2.png>
-Package pdftex.def Info: images/esq_2.png used on input line 59.
+Package pdftex.def Info: images/esq_2.png used on input line 63.
 (pdftex.def)             Requested size: 693.3085pt x 486.6168pt.
 
-Overfull \hbox (18.97818pt too wide) in paragraph at lines 59--60
+Overfull \hbox (18.97818pt too wide) in paragraph at lines 63--64
  [] 
  []
 
 
-LaTeX Warning: Float too large for page by 87.99538pt on input line 63.
+LaTeX Warning: Float too large for page by 87.99538pt on input line 67.
 
 [5 <C:/Users/Rafael/Downloads/cs420/fileshare/Trabalho-MIC/Trabalho-MIC/report-
 latex/Relatorio_final_MIC/images/esq_2.png>])
 (C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
 ex\Relatorio_final_MIC\text/codigo.tex)
 (C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
-ex\Relatorio_final_MIC\text/consideracoes.tex)
+ex\Relatorio_final_MIC\text/consideracoes.tex
+Underfull \hbox (badness 1728) in paragraph at lines 2--3
+\OT1/ptm/m/n/12 A es-co-lha da ideia do pro-jeto nos per-mi-tiu ex-plo-rar uma 
+[]area con-si-der[]avel de
+ []
+
+)
 (C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
 ex\Relatorio_final_MIC\report.bbl
 Underfull \hbox (badness 10000) in paragraph at lines 20--24
@@ -365,10 +368,10 @@ $
 (C:\Users\Rafael\Downloads\cs420\fileshare\Trabalho-MIC\Trabalho-MIC\report-lat
 ex\Relatorio_final_MIC\report.aux) ) 
 Here is how much of TeX's memory you used:
- 2924 strings out of 493921
- 42001 string characters out of 3144873
- 105627 words of memory out of 3000000
- 6145 multiletter control sequences out of 15000+200000
+ 2926 strings out of 493921
+ 42017 string characters out of 3144873
+ 106596 words of memory out of 3000000
+ 6147 multiletter control sequences out of 15000+200000
  18235 words of font info for 42 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
  30i,8n,28p,1004b,310s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -376,14 +379,16 @@ Here is how much of TeX's memory you used:
 c/dvips/fontname/8r.enc}<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/a
 msfonts/cm/cmmi12.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/ams
 fonts/cm/cmmi8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfon
-ts/cm/cmr8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/c
-m/cmsy10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.
-pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvb8a.pfb><C:/
-Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Fil
-es (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb>
-Output written on report.pdf (6 pages, 401390 bytes).
+ts/cm/cmr12.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/
+cm/cmr8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
+msy10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cms
+y8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><C
+:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvb8a.pfb><C:/Progra
+m Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files (x8
+6)/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb>
+Output written on report.pdf (6 pages, 420452 bytes).
 PDF statistics:
- 59 PDF objects out of 1000 (max. 8388607)
+ 67 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 
