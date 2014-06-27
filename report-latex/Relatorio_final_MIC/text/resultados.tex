@@ -1,5 +1,9 @@
-\section{Resultados}
-A figura~\ref{fig:schem} mostra o resultado final do esquemático do projeto. Os componentes utilizados na confecção do projeto são listados a seguir:
+\section{Metodologia e resultados}
+
+\subsection{Circuito}
+O circuito utilizado no projeto foi desenvolvido de acordo com as ideias que foram agregadas. Inicialmente, o projeto restringia-se ao controle automático pelo PIC da abertura da basculante de acordo com a luminosidade informada pelo LDR. Aos poucos, novas ideias foram integradas, agregando valor e complexidade ao trabalho. Dentre estas, adicionamos a possibilidade de o usuário do dispositivo configurá-lo através do uso de um controle remoto, trazendo assim a filosofia de dois modos de operação diferentes: um manual (onde o usuário pode controlar a abertura da basculante de forma customizada) e outro automático (no qual o usuário seta um valor de luminosidade a ser atingido pelo LDR, deixando o controle da abertura apenas a cargo do PIC). Além disso, adicionamos um display duplo de sete segmentos, através do qual o usuário poderá ler os valores de luminosidade lidos pelo LDR instantaneamente, além de facilitar a configuração do dispositivo.
+
+A Figura~\ref{fig:schem} mostra o resultado final do esquemático do projeto. Os componentes principais utilizados na confecção do projeto são listados a seguir, considerando todas as adições que fizemos ao longo do tempo:
 
 \begin{itemize}
 \item Microcontrolador \textbf{PIC-16F684};
@@ -10,6 +14,43 @@ A figura~\ref{fig:schem} mostra o resultado final do esquemático do projeto. Os 
 \item Dois IC Shifters 74HC595;
 \item Um display de 7 segmentos duplo A-562G.
 \end{itemize}
+
+Além destes, componentes como resistores, capacitores e transistores também foram introduzidos, de modo a prover certas características de tensão/corrente convenientes (como no caso do LDR, onde o resistor de pull-up limita a tensão aplicada à entrada do PIC, realizando um divisor de tensão, e o capacitor em paralelo com ele, que ajuda na remoção de possíveis flutuações nesta tensão). Como podemos ver pelo esquemático do projeto, ao lado esquerdo do PIC estão os dispositivos que geram sinais a serem processados (LDR, receiver IR). Ao lado esquerdo, estão todos os sinais de saída do PIC utilizadas. Ele controla diretamente o driver do motor de passo, o qual será capaz de fornecer a corrente necessária e ``isolar" o motor do resto do circuito. Finalmente, o PIC ainda fornece os sinais para os displays de sete segmentos de forma serial (os registradores se encarregam de prover os valores corretos para os displays).
+
+
+
+\subsection{Programa assembly}
+De modo que pudéssemos suportar todos os periféricos citados, tivemos que fazer diversas adições ao código assembly ao longo do projeto. Os eventos que causam interrupções no PIC são aqueles relacionados à entrada do controle remoto (teste de entrada de valor ou do amostrador de bits). Além disso, 
+
+
+\subsection{Ambiente de teste}
+Além do circuito microcontrolado proposto, desejávamos confeccionar um ambiente próprio para testar nossa solução e validar a ideia do projeto. Deste modo, decidimos por construir um pequeno sistema basculante de teste, o qual permitisse que o circuito microcontrolado pudesse realizar o controle de aletas móveis. Este movimento iria, então, alterar o grau de luminosidade do interior de uma caixa sobre a qual colocarímos este sistema de aletas e, dentro desta caixa, fixaríamos o sensor do dispositivo.
+
+As figuras a seguir ilustram a construção deste sistema. A Figura~\ref{fig:paletas-detalhe} mostra em detalhe parte do mecanismo utilizado para movimentar as aletas da basculante. Já a Figura~\ref{fig:paletas-montado} tem por finalidade mostrar como as aletas são fixadas numa estrutura única. A Figura~\ref{fig:motor} mostra como a estrutura 
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 0.5\textheight]{images/aletas.jpg} 
+\caption{Teste do esquema de movimentação das aletas.}
+\label{fig:paletas-detalhe}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 0.5\textheight]{images/aletas_montado.jpg} 
+\caption{Detalhe da montagem das aletas da basculante.}
+\label{fig:paletas-montado}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[height = 0.5\textheight]{images/detalhe_motor.jpg} 
+\caption{Detalhe do motor linear.}
+\label{fig:motor}
+\end{center}
+\end{figure}
 
 \clearpage
 \begin{landscape}
@@ -22,11 +63,3 @@ A figura~\ref{fig:schem} mostra o resultado final do esquemático do projeto. Os 
 \end{figure}
 \end{landscape}
 \clearpage
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[height = 0.5\textheight]{images/detalhe_motor.jpg} 
-\caption{Detalhe do motor linear.}
-\label{fig:motor}
-\end{center}
-\end{figure}
